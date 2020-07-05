@@ -1,0 +1,3 @@
+| user_id (foreign key) | friend_id (foreign key) |
+
+primary key = user_id + friend_id

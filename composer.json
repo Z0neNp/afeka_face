@@ -1,0 +1,13 @@
+{
+    "name": "maxim_marat/afeka_face",
+    "description": "A project that simulates parts of social network application.",
+    "type": "project",
+    "license": "MIT",
+    "require": {
+    },
+    "autoload": {
+        "psr-4": {
+            "AfekaFace\\": "src/"
+        }
+    }
+}
