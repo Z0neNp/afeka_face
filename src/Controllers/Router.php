@@ -13,21 +13,24 @@ class Router {
     if(preg_match('#^/$#', $req_uri) && $req_method == "GET") {
       return "home view";
     }
+
     else if(preg_match("#^/login$#", $req_uri) && $req_method == "GET") {
       return "login view";
     }
     else if(preg_match("#^/login$#", $req_uri) && $req_method == "POST") {
       return "login action";
     }
+    
     else if(preg_match("#^/signup$#", $req_uri) && $req_method == "GET") {
       return "signup view";
     }
     else if(preg_match("#^/signup$#", $req_uri) && $req_method == "POST") {
       return "signup action";
     }
+    
     else if(preg_match("#^/users/[0-9]+$#", $req_uri) && $req_method == "GET") {
       try {
-        $result = $this->_users->homePage($req_uri);
+        $result = $this->_users->htmlContainer($req_uri);
         return $result;
       } catch(Exception $err) {
         $error->status = "Error";
@@ -36,30 +39,32 @@ class Router {
       }
       return json_encode($error);
     }
-    else if(preg_match("#^/users/[0-9]+/edit$#", $req_uri) && $req_method == "GET") {
-      return "user id edit view";
-    }
-    else if(preg_match("#^/users/[0-9]+/edit$#", $req_uri) && $req_method == "POST") {
-      return "user id edit action";
-    }
-    else if(preg_match("#^/users/[0-9]+/friends$#", $req_uri) && $req_method == "GET") {
-      return "user id friends view";
-    }
     else if(preg_match("#^/users/[0-9]+/friends/new$#", $req_uri) && $req_method == "GET") {
       return "user id friends new view";
     }
-    else if(preg_match("#^/users/[0-9]+/friends/new$#", $req_uri) && $req_method == "POST") {
-      return "user id friends new action";
+    else if(preg_match("#^/users/[0-9]+/friends/add$#", $req_uri) && $req_method == "POST") {
+      return "user id friends add action";
     }
-    else if(preg_match("#^/users/[0-9]+/friends/remove$#", $req_uri) && $req_method == "GET") {
-      return "user id friends remove view";
+    else if(preg_match("#^/users/[0-9]+/friends/remove$#", $req_uri) && $req_method == "POST") {
+      return "user id friends remove action";
     }
-    else if(preg_match("#^/users/[0-9]+/friends/new$#", $req_uri) && $req_method == "POST") {
-      return "user id friends new action";
+    else if(preg_match("#^/users/[0-9]+/friends/[0-9]+$#", $req_uri) && $req_method == "POST") {
+      return "user id friends id view";
     }
-    else if(preg_match("#^/users/[0-9]+/friends/[0-9]+$#", $req_uri) && $req_method == "GET") {
-      return "user id friend id view";
+
+    else if(
+      preg_match("#^/users/[0-9]+/friends/[0-9]+/posts$#", $req_uri) &&
+      $req_method == "GET"
+      ) {
+        return "user id friends posts view";
     }
+    else if(
+      preg_match("#^/users/[0-9]+/friends/[0-9]+/posts/[0-9]+$#", $req_uri) &&
+      $req_method == "GET"
+      ) {
+        return "user id friends posts id view";
+    }
+
     else if(preg_match("#^/users/[0-9]+/posts$#", $req_uri) && $req_method == "GET") {
       return "user id posts view";
     }
