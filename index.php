@@ -17,4 +17,4 @@ $router->setUsersController(
 
 $response = $router->run();
 
-echo $response . "\n";
+echo $response;

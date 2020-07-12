@@ -10,8 +10,8 @@ class Users {
 
   public function htmlContainer($req_uri) {
     $error = null;
-    $relationships = null;
     $friends_data = null;
+    $relationships = null;
     $result = null;
     $user = null;
     $user_id = null;
@@ -66,6 +66,118 @@ class Users {
     return json_encode($error);
   }
 
+  public function htmlContainerFriend($req_uri) {
+    $error = null;
+    $friend = null;
+    $friend_id = null;
+    $result = null;
+    $user_id = null;
+    try {
+      $user_id = $this->_userIdFromReqUri($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the user_id from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $friend_id = $this->_friendIdFromReqUri($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the friend_id from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $friend = $this->_model->details($friend_id);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "The retrieved friend data from the database was corrupted";
+      return json_encode($error);
+    }
+    if($this->_userLegal($friend)) {
+      try {
+        $result = $this->_view->homeFriend($friend);
+        return $result;
+      } catch(Exception $err) {
+        $error->status = "Error";
+        $error->reason = $err->getMessage();
+        $error->message = "Failed to build a user home html container";
+        return json_encode($error);
+      }
+    }
+    $error->status = "Error";
+    $error->message = "User data or user's friends data retrieved from the database was illegal";
+    return json_encode($error);
+  }
+
+  public function htmlContainerOthers($req_uri) {
+    $error = null;
+    $filter = null;
+    $others = null;
+    $result = null;
+    $user_id = null;
+    try {
+      $user_id = $this->_userIdFromReqUri($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the user_id from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $filter = $this->_usersFilterFromReqURI($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the filter string from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $others = $this->_model->others($user_id, $filter);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve other users based on the filter string";
+      json_encode($error);
+    }
+    try {
+      foreach($others as $other) {
+        if($this->_userLegal($other)) {
+          $status = $this->_model_friends->status($user_id, $other->id);
+          if($status == "approved" || $status == "request sent") {
+            $other->actions = array("remove");
+          }
+          else if($status == "pending approval") {
+            $other->actions = array("add", "remove");
+          }
+          else {
+            $other->actions = array("add");
+          }
+        }
+        else {
+          $error->status = "Error";
+          $error->message = "One of the other users had a corrupted data";
+          return json_encode($error);
+        }
+      }
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "One of the other users had a corrupted data";
+      return json_encode($error);
+    }
+    try {
+      return $this->_view->othersList($user_id, $others);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to build other users list";
+      return json_encode($error);
+    }
+  }
+
   public function setFriendsModel($model) {
     $this->_model_friends = $model;
   }
@@ -101,8 +213,21 @@ class Users {
     return true;
   }
 
+  private function _friendIdFromReqUri($req_uri) {
+    // expected URI is /users/[0-9]+/friends/[0-9]+
+    $splitted = explode("/", $req_uri);
+    return intval($splitted[4]);
+  }
+
   private function _friendsRelationshipsLegal($relationships) {
     return isset($relationships);
+  }
+
+  private function _usersFilterFromReqURI($req_uri) {
+    // expected URI is /users/[0-9]+/friends/new/[a-z|A-Z|]+%20[a-z|A-Z]+
+    $splitted = explode("/", $req_uri);
+    $result = preg_replace('/%20/', ' ', $splitted[5]);
+    return $result;
   }
 
   private function _userLegal($user) {

@@ -5,36 +5,62 @@ namespace AfekaFace\Models;
 class Friends {
 
   private $_db;
+  private $_relationships;
 
   public function all($id) {
-    $friends = [];
-    if($id == 1) {
-      $friend->id = 2;
-      $friend->status = "request sent";
-      array_push($friends, $friend);
+    $this->_setRelationships();
+    $result = [];
+    foreach($this->_relationships as $relationships) {
+      if($relationships["id"] == $id) {
+        foreach($relationships["friends"] as $relationship) {
+          $next = null;
+          $next->id = $relationship["id"];
+          $next->status = $relationship["status"];
+          array_push($result, $next);
+        }
+        break;
+      }
     }
-    else if($id == 2) {
-      $a->id = 1;
-      $a->status = "pending approval";
-      array_push($friends, $a);
-      $b->id = 3;
-      $b->status = "request sent";
-      array_push($friends, $b);
-      $c->id = 4;
-      $c->status = "approved";
-      array_push($friends, $c);
+    return $result;
+  }
+
+  public function status($user_id, $friend_id) {
+    $this->_setRelationships();
+    $result = null;
+    foreach($this->_relationships as $relationships) {
+      if($relationships["id"] == $user_id) {
+        foreach($relationships["friends"] as $relationship) {
+          if($relationship["id"] == $friend_id) {
+            $result = $relationship["status"];
+            break;
+          }
+        }
+        if(isset($result)) {
+          break;
+        }
+      }
     }
-    else if($id == 3) {
-      $friend->id = 2;
-      $friend->status = "pending approval";
-      array_push($friends, $friend);
+    if(!isset($result)) {
+      return "unacquainted";
     }
-    else if($id == 4) {
-      $friend->id = 2;
-      $friend->status = "approved";
-      array_push($friends, $friend);
-    }
-    return $friends;
+    return $result;
+  }
+
+  private function _setRelationships() {
+    // TODO: remove when db connection is active
+    $result = [];
+    array_push($result, array("id" => 1, "friends" => [
+      array("id" => 2, "status" => "request sent")
+    ]));
+    array_push($result, array("id" => 2, "friends" => [
+      array("id" => 1, "status" => "pending approval"),
+      array("id" => 3, "status" => "request sent"),
+      array("id" => 4, "status" => "approved")
+    ]));
+    array_push($result, array("id" => 3, "friends" => [
+      array("id" => 2, "status" => "approved")
+    ]));
+    $this->_relationships = $result;
   }
 
 }
