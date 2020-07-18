@@ -16,6 +16,7 @@ function filterProvided(element) {
         filter = filter.split(' ').join('%20');
       }
       otherUsers(filter);
+      handleFilterUsersInput();
     }
     else {
       console.error("The values in the user search can be letters, * or whitespaces");
@@ -36,7 +37,6 @@ function otherUsers(filter) {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
         updateOtherUsersList(xhr.responseText);
-        handleFilterUsersInput();
       } else {
         console.error(xhr.statusText);
       }

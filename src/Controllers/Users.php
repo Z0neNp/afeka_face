@@ -4,9 +4,11 @@ namespace AfekaFace\Controllers;
 
 class Users {
   
+  private $_encryptor;
   private $_model_friends;
   private $_model;
   private $_view;
+  private $_view_authentication;
 
   public function htmlContainer($req_uri) {
     $error = null;
@@ -52,12 +54,12 @@ class Users {
     }
     if($this->_userLegal($user) && $this->_friendsDataLegal($friends_data)) {
       try {
-        $result = $this->_view->home($user, $friends_data);
+        $result = $this->_view->view($user, $friends_data);
         return $result;
       } catch(Exception $err) {
         $error->status = "Error";
         $error->reason = $err->getMessage();
-        $error->message = "Failed to build a user home html container";
+        $error->message = "Failed to build a user view html container";
         return json_encode($error);
       }
     }
@@ -98,18 +100,22 @@ class Users {
     }
     if($this->_userLegal($friend)) {
       try {
-        $result = $this->_view->homeFriend($friend);
+        $result = $this->_view->viewFriend($friend);
         return $result;
       } catch(Exception $err) {
         $error->status = "Error";
         $error->reason = $err->getMessage();
-        $error->message = "Failed to build a user home html container";
+        $error->message = "Failed to build a user view html container";
         return json_encode($error);
       }
     }
     $error->status = "Error";
     $error->message = "User data or user's friends data retrieved from the database was illegal";
     return json_encode($error);
+  }
+
+  public function htmlContainerLogin() {
+    return $this->view_authentication->containerLogin();
   }
 
   public function htmlContainerOthers($req_uri) {
@@ -178,12 +184,46 @@ class Users {
     }
   }
 
+  public function htmlContainerSignup() {
+    return $this->view_authentication->containerSignup();
+  }
+
+  public function new($rc4_encrypted_data) {
+    $result = null;
+    $credentials_raw = $this->_encryptor->decrypt($rc4_encrypted_data, "abcde");
+    $credentials = json_decode($credentials_raw);
+    if($credentials->first_name == "Jane") {
+      $result->id = 1;
+    }
+    else if($credentials->first_name == "John") {
+      $result->id = 2;
+    }
+    else if($credentials->first_name == "Jack") {
+      $result->id = 3;
+    }
+    else if($credentials->first_name == "Kevin") {
+      $result->id = 4;
+    }
+    else if($credentials->first_name == "Lane") {
+      $result->error = "user exists";
+    }
+    return $result;
+  }
+
   public function setFriendsModel($model) {
     $this->_model_friends = $model;
   }
 
   public function setModel($model) {
     $this->_model = $model;
+  }
+
+  public function setAuthenticationView($view) {
+    $this->view_authentication = $view;
+  }
+
+  public function setEncryptor($encryptor) {
+    $this->_encryptor = $encryptor;
   }
 
   public function setView($view) {
@@ -241,6 +281,13 @@ class Users {
     // expected URI is /users/[0-9]+
     $splitted = explode("/", $req_uri);
     return intval($splitted[2]);
+  }
+
+  private function _rc4EncryptedDataFromPayload($payload) {
+    $result = null;
+    $result->key = substr($payload, 0, 5);
+    $result->credentials = substr($payload, 5);
+    return $result;
   }
 
 }
