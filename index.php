@@ -1,11 +1,28 @@
 <?php
 
 require_once "vendor/autoload.php";
+require_once "src/Database.php";
+
+$database = new Database();
+$database->initConnection();
 
 $encryptor = new AfekaFace\Encryptor();
 
 $friends_model = new AfekaFace\Models\Friends();
 $user_model = new AfekaFace\Models\User();
+
+$user_model->setDb($database);
+$friends_model->setDb($database);
+
+// $friends_model->drop();
+// $user_model->drop();
+// $user_model->createScheme();
+// $user_model->populate();
+// $friends_model->createScheme();
+// $friends_model->populate();
+// $database->closeConnection();
+// echo "Database has been reset";
+// exit(0);
 
 $authentication_view = new AfekaFace\Views\Authentication();
 $home_view = new AfekaFace\Views\Home();
@@ -28,4 +45,8 @@ $router->setHomeController($home_controller);
 
 $response = $router->run();
 
+$database->closeConnection();
+
 echo $response;
+
+?>

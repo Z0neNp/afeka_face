@@ -10,6 +10,14 @@ function credentialsContainerObj() {
   }
 }
 
+function credentialsLegal(credentials) {
+  let name_regex = new RegExp(/^[a-zA-Z]+$/g);
+  let password_regex = new RegExp(/^[a-zA-Z_]+$/g);
+  return credentials.first_name.match(name_regex) == undefined &&
+    credentials.last_name.match(name_regex) == undefined &&
+    credentials.password.match(password_regex);
+}
+
 function gatherCredentials() {
   let result = {
     first_name: document.getElementById("first_name").value,
@@ -19,15 +27,27 @@ function gatherCredentials() {
   return result;
 }
 
+function resetCredentials() {
+  document.getElementById("password").value = "";
+  document.getElementById("last_name").value = "";
+  document.getElementById("first_name").value = "";
+}
+
 function login() {
   let credentials = gatherCredentials();
   console.log(credentials);
 }
 
-function singup() {
+function signup() {
   let payload = undefined;
   let xhr = new XMLHttpRequest();
-  credentials_container.set(gatherCredentials());
+  let credentials = gatherCredentials();
+  if(!credentialsLegal(credentials)) {
+    resetCredentials();
+    alert("Some of your information is illegal.\nTry again.");
+    return;
+  }
+  credentials_container.set(credentials);
   payload = credentials_container.get();
   xhr.open("POST", `${window.location.href}`, true);
   xhr.setRequestHeader("Content-Type", "application/text");
@@ -40,7 +60,6 @@ function singup() {
           userHome(response["id"]);
         } else {
           alert("Account creation has failed!\n" + response["error"]);
-
         }
       } else {
         console.error(xhr.statusText);

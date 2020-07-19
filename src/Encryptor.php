@@ -28,48 +28,22 @@ class Encryptor {
     return $result;
   }
 
-  public function encrypt($plain_text, $key) {
-    $this->_key = $key;
-    $this->_payload = array();
-    return $this->_crypt($plain_text);
-  }
-
   private function _setup($key) {
+    $result = array();
     $key_length = strlen($key);
-    $payload = array();
     $i = 0;
     $j = 0;
     for($i = 0; $i < 256; $i++) {
-      array_push($payload, $i);
+      array_push($result, $i);
     }
     for($i = 0; $i < 256; $i++) {
-      $j = ($j + $payload[$i] + ord($key[$i % $key_length])) % 256;
-      $temp = $payload[$i];
-      $payload[$i] = $payload[$j];
-      $payload[$j] = $temp;
-    }
-    return $payload;
-  }
-
-  private function _crypt($text) {
-    $result = "";
-    $length = strlen($text);
-    $this->_setup();
-    $i = 0;
-    $j = 0;
-    for($c = 0; $c < $length; $c++) {
-      $i = ($i + 1) % 256;
-      $j = ($j + $this->_payload[$i]) % 256;
-      $this->_swap($i, $j);
-      $temp = ($this->_payload[$i] + $this->_payload[$j]) % 256;
-      $result = $result . chr($text[$c] ^ $this->_payload[$temp]);
+      $j = ($j + $result[$i] + ord($key[$i % $key_length])) % 256;
+      $temp = $result[$i];
+      $result[$i] = $result[$j];
+      $result[$j] = $temp;
     }
     return $result;
   }
-
-  private function _swap($i, $j) {
-    $temp = $this->_payload[$i];
-    $this->_payload[$i] = $this->_payload[$j];
-    $this->_payload[$j] = $temp;
-  }
 }
+
+?>

@@ -192,20 +192,21 @@ class Users {
     $result = null;
     $credentials_raw = $this->_encryptor->decrypt($rc4_encrypted_data, "abcde");
     $credentials = json_decode($credentials_raw);
-    if($credentials->first_name == "Jane") {
-      $result->id = 1;
-    }
-    else if($credentials->first_name == "John") {
-      $result->id = 2;
-    }
-    else if($credentials->first_name == "Jack") {
-      $result->id = 3;
-    }
-    else if($credentials->first_name == "Kevin") {
-      $result->id = 4;
-    }
-    else if($credentials->first_name == "Lane") {
+    if($this->_model->isPersisted($credentials->first_name, $credentials->last_name)) {
       $result->error = "user exists";
+    }
+    else {
+      $user_id = $this->_model->new(
+        $credentials->first_name,
+        $credentials->last_name,
+        $credentials->password
+      );
+      if(isset($user_id)) {
+        $result->id = $user_id;
+      }
+      else {
+        $result->error = "Failed to persist the new user";
+      }
     }
     return $result;
   }

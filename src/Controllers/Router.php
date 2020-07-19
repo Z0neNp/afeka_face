@@ -14,7 +14,7 @@ class Router {
     $error = null;
     $req_uri = $_SERVER['REQUEST_URI'];
     $req_method = $_SERVER['REQUEST_METHOD'];
-    $result = $this->_header;;
+    $result = $this->_header;
     if(preg_match('#^/$#', $req_uri) && $req_method == "GET") {
       return $this->_home->htmlContainer();
     }
