@@ -302,6 +302,56 @@ class Users {
     return $result;
   }
 
+  public function removeFriend($req_uri) {
+    $error = null;
+    $friend_id = null;
+    $relationship_status = null;
+    $result = null;
+    $user_id = null;
+    try {
+      $user_id = $this->_userIdFromReqUri($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the user_id from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $friend_id = $this->_friendIdFromReqUriForRelationshipStatus($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the user_id from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $relationship_status = $this->_model_friends->status($user_id, $friend_id);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the relationship status from the database";
+      return json_encode($error);
+    }
+    try {
+      if($relationship_status == $GLOBALS["friend_status"]["approved"] ||
+          $relationship_status == $GLOBALS["friend_status"]["pending_approval"] ||
+          $relationship_status == $GLOBALS["friend_status"]["request_sent"]  
+        ) {
+        $this->_model_friends->statusToUnacquainted($user_id, $friend_id);
+        $result = "changed";
+      }
+      else {
+        $result = "unchanged";
+      }
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to update the relationship status in the database";
+      return json_encode($error);
+    }
+    return $result;
+  }
+
   public function setFriendsModel($model) {
     $this->_model_friends = $model;
   }

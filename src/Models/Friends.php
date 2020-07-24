@@ -82,6 +82,15 @@ class Friends {
     return $this->_db->execute($query);
   }
 
+  public function statusToUnacquainted($user_id, $friend_id) {
+    $query = "DELETE FROM friends WHERE";
+    $query = $query . " user_id = $user_id AND friend_id = $friend_id";
+    $this->_db->execute($query);
+    $query = "DELETE FROM friends WHERE";
+    $query = $query . " user_id = $friend_id AND friend_id = $user_id";
+    $this->_db->execute($query);
+  }
+
   public function statusToRequestSent($user_id, $friend_id) {
     $status = $GLOBALS["friend_status"]["request_sent"];
     $query = "INSERT INTO friends VALUES($user_id, $friend_id,";
