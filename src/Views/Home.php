@@ -1,8 +1,6 @@
 <?php
 
-namespace AfekaFace\Views;
-
-class Home {
+class HomeView {
 
   public function view() {
     $result = "<div>Welcome to the Afeka Face!</div>";

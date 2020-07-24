@@ -15,14 +15,14 @@ function filterProvided(element) {
       else {
         filter = filter.split(' ').join('%20');
       }
-      otherUsers(filter);
-      handleFilterUsersInput();
+      otherUsers(credentials_container.getId(), filter);
     }
     else {
       console.error("The values in the user search can be letters, * or whitespaces");
       element.target.value = "*";
+      handleFilterUsersInput();
     }
-  }, 750);
+  }, 1000);
 }
 
 function filterLegal(filter) {
@@ -30,22 +30,34 @@ function filterLegal(filter) {
   return filter.match(legal_regex);
 }
 
-function otherUsers(filter) {
+function otherUsers(user_id, filter) {
+  let payload = credentials_container.get();
   let xhr = new XMLHttpRequest();
-  xhr.open("GET", `${window.location.href}/friends/new/${filter}`, true);
+  xhr.open("POST", `/users/${user_id}/friends/new/${filter}`, true);
+  xhr.setRequestHeader("Content-Type", "application/text");
   xhr.onload = function(e) {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
-        updateOtherUsersList(xhr.responseText);
+        try {
+          let response = JSON.parse(xhr.responseText);
+          console.error(response["reason"]);
+          alert(response["message"]);
+        } catch(err) {
+          updateOtherUsersList(xhr.responseText);
+          handleFilterUsersInput();
+          return;
+        }
       } else {
         console.error(xhr.statusText);
       }
+      window.location.href = "http://localhost:8000/";
     }
   };
   xhr.onerror = function(e) {
     console.error(xhr.statusText);
+    window.location.href = "http://localhost:8000/";
   };
-  xhr.send(null);
+  xhr.send(payload);
 }
 
 function updateOtherUsersList(list) {
@@ -54,5 +66,3 @@ function updateOtherUsersList(list) {
   element.style.display = "none";
   element.style.display = "block";
 }
-
-handleFilterUsersInput();

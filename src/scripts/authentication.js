@@ -1,11 +1,18 @@
 function credentialsContainerObj() {
   let _data = undefined;
+  let _id = undefined;
   return {
     set: function(data) {
       _data = data;
     },
+    setId: function(id) {
+      _id = id;
+    },
     get: function() {
       return rc4_encrypt(JSON.stringify(_data), "abcde");
+    },
+    getId: function() {
+      return _id;
     }
   }
 }
@@ -13,9 +20,9 @@ function credentialsContainerObj() {
 function credentialsLegal(credentials) {
   let name_regex = new RegExp(/^[a-zA-Z]+$/g);
   let password_regex = new RegExp(/^[a-zA-Z_]+$/g);
-  return credentials.first_name.match(name_regex) == undefined &&
-    credentials.last_name.match(name_regex) == undefined &&
-    credentials.password.match(password_regex);
+  return credentials.first_name.match(name_regex) != undefined &&
+    credentials.last_name.match(name_regex) != undefined &&
+    credentials.password.match(password_regex) != undefined;
 }
 
 function gatherCredentials() {
@@ -34,8 +41,37 @@ function resetCredentials() {
 }
 
 function login() {
+  let payload = undefined;
+  let xhr = new XMLHttpRequest();
   let credentials = gatherCredentials();
-  console.log(credentials);
+  if(!credentialsLegal(credentials)) {
+    resetCredentials();
+    alert("Some of your information is illegal.\nTry again.");
+    return;
+  }
+  credentials_container.set(credentials);
+  payload = credentials_container.get();
+  xhr.open("POST", `${window.location.href}`, true);
+  xhr.setRequestHeader("Content-Type", "application/text");
+  xhr.onload = function(e) {
+    if(xhr.readyState === 4) {
+      if(xhr.status === 200) {
+        let response = JSON.parse(xhr.responseText);
+        if(response["id"]) {
+          credentials_container.setId(response["id"]);
+          userHome(response["id"]);
+        } else {
+          alert("Login has failed!\n" + response["error"]);
+        }
+      } else {
+        console.error(xhr.statusText);
+      }
+    }
+  }
+  xhr.onerror = function(e) {
+    console.error(xhr.statusText);
+  };
+  xhr.send(payload);
 }
 
 function signup() {
@@ -52,10 +88,11 @@ function signup() {
   xhr.open("POST", `${window.location.href}`, true);
   xhr.setRequestHeader("Content-Type", "application/text");
   xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
+    if(xhr.readyState === 4) {
+      if(xhr.status === 200) {
         let response = JSON.parse(xhr.responseText);
         if(response["id"]) {
+          credentials_container.setId(response["id"]);
           alert("Your account has been created!\nYou will be redirected to your page");
           userHome(response["id"]);
         } else {

@@ -20,7 +20,7 @@ class Database {
     }
     $this->_conn = new mysqli("localhost", "root", "root", "afeka_face");
     if($this->_conn->connect_errno) {
-      echo "Connect failed" . $mysqli->connect_error;
+      echo "Database connection failed" . $mysqli->connect_error;
       exit(1);
     }
   }

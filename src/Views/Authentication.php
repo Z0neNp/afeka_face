@@ -1,8 +1,6 @@
 <?php
 
-namespace AfekaFace\Views;
-
-class Authentication {
+class AuthenticationView {
 
   public function userDetails() {
     $result = "<div><label for=\"first_name\">First name: </label>";
@@ -14,10 +12,12 @@ class Authentication {
   }
 
   public function containerLogin() {
-    return $this->userDetails() . "<input type=\"submit\" value=\"Submit\"></div>";
+    return $this->userDetails() . "<input type=\"submit\" value=\"Submit\" onclick=\"login()\"></div>";
   }
   
   public function containerSignup() {
-    return $this->userDetails() . "<input type=\"submit\" value=\"Submit\"></div>";
+    return $this->userDetails() . "<input type=\"submit\" value=\"Submit\" onclick=\"signup()\"></div>";
   }
 }
+
+?>

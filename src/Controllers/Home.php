@@ -1,7 +1,5 @@
 <?php
 
-namespace AfekaFace\Controllers;
-
 class Home {
 
   private $_view;

@@ -1,23 +1,18 @@
 <?php
 
-namespace AfekaFace\Models;
-
 class Friends {
 
   private $_db;
-  private $_relationships;
 
   public function all($id) {
     $result = [];
-    foreach($this->_relationships as $relationships) {
-      if($relationships["id"] == $id) {
-        foreach($relationships["friends"] as $relationship) {
-          $next = null;
-          $next->id = $relationship["id"];
-          $next->status = $relationship["status"];
-          array_push($result, $next);
-        }
-        break;
+    $relationships = $this->_allRelationships();
+    foreach($relationships as $relationship) {
+      if($relationship["user_id"] == $id) {
+        $next = null;
+        $next->id = $relationship["friend_id"];
+        $next->status = $relationship["status"];
+        array_push($result, $next);
       }
     }
     return $result;
@@ -56,6 +51,52 @@ class Friends {
     }
   }
 
+  public function setDb($db) {
+    $this->_db = $db;
+  }
+
+  public function status($user_id, $friend_id) {
+    $result = null;
+    $relationships = $this->_allRelationships();
+    foreach($relationships as $relationship) {
+      if($relationship["user_id"] == $user_id) {
+        if($relationship["friend_id"] == $friend_id) {
+          $result = $relationship["status"];
+          break;
+        }
+      }
+    }
+    if(!isset($result)) {
+      return $GLOBALS["friend_status"]["unacquainted"];
+    }
+    return $result;
+  }
+
+  public function statusToApproved($user_id, $friend_id) {
+    $status = $GLOBALS["friend_status"]["approved"];
+    $query = "UPDATE friends SET status = \"$status\"";
+    $query = $query . " WHERE user_id = $user_id AND friend_id = $friend_id;";
+    $this->_db->execute($query);
+    $query = "UPDATE friends SET status = \"$status\"";
+    $query = $query . " WHERE user_id = $friend_id AND friend_id = $user_id;";
+    return $this->_db->execute($query);
+  }
+
+  public function statusToRequestSent($user_id, $friend_id) {
+    $status = $GLOBALS["friend_status"]["request_sent"];
+    $query = "INSERT INTO friends VALUES($user_id, $friend_id,";
+    $query = $query . " \"$status\");";
+    $this->_db->execute($query);
+    $status = $GLOBALS["friend_status"]["pending_approval"];
+    $query = "INSERT INTO friends VALUES($friend_id, $user_id,";
+    $query = $query . " \"$status\");";
+    return $this->_db->execute($query);
+  }
+
+  private function _allRelationships() {
+    return $this->_db->query("SELECT * FROM friends;");
+  }
+
   private function _relationships() {
     $users = array();
     $user->first_name = "John";
@@ -63,7 +104,7 @@ class Friends {
     $user->friends = array();
     $friend->first_name = "Jane";
     $friend->last_name = "Doe";
-    $friend->status = "request sent";
+    $friend->status = $GLOBALS["friend_status"]["request_sent"];
     array_push($user->friends, $friend);
     array_push($users, $user);
 
@@ -74,7 +115,7 @@ class Friends {
     $friend = null;
     $friend->first_name = "John";
     $friend->last_name = "Doe";
-    $friend->status = "pending approval";
+    $friend->status = $GLOBALS["friend_status"]["pending_approval"];
     array_push($user->friends, $friend);
     $friend = null;
     $friend->first_name = "Jack";
@@ -95,7 +136,7 @@ class Friends {
     $friend = null;
     $friend->first_name = "Jane";
     $friend->last_name = "Doe";
-    $friend->status = "pending approval";
+    $friend->status = $GLOBALS["friend_status"]["pending_approval"];
     array_push($user->friends, $friend);
     array_push($users, $user);
 
@@ -106,36 +147,11 @@ class Friends {
     $friend = null;
     $friend->first_name = "Jane";
     $friend->last_name = "Doe";
-    $friend->status = "approved";
+    $friend->status = $GLOBALS["friend_status"]["approved"];
     array_push($user->friends, $friend);
     array_push($users, $user);
 
     return $users;
-  }
-
-  public function setDb($db) {
-    $this->_db = $db;
-  }
-
-  public function status($user_id, $friend_id) {
-    $result = null;
-    foreach($this->_relationships as $relationships) {
-      if($relationships["id"] == $user_id) {
-        foreach($relationships["friends"] as $relationship) {
-          if($relationship["id"] == $friend_id) {
-            $result = $relationship["status"];
-            break;
-          }
-        }
-        if(isset($result)) {
-          break;
-        }
-      }
-    }
-    if(!isset($result)) {
-      return "unacquainted";
-    }
-    return $result;
   }
 
 }

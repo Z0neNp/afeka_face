@@ -55,3 +55,7 @@ php composer.phar install
 ```
 php -S localhost:8000
 ```
+- Start the mysql server
+```
+service mysql start
+```

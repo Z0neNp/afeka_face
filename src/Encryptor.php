@@ -1,19 +1,16 @@
 <?php
 
-namespace AfekaFace;
-
 // Special thanks goes to: https://pear.php.net/package/Crypt_RC4/docs/latest/__filesource/fsource_Crypt__Crypt_RC4-1.0.3CryptRc4.php.html
 class Encryptor {
 
   private $_payload;
-  private $_key;
+  private $_key = "abcde";
 
-  public function decrypt($encrypted_text, $key) {
-    $key = "abcde";
+  public function decrypt($encrypted_text) {
     $result = "";
     $encrypted_text = explode(",", $encrypted_text);
     $length = count($encrypted_text);
-    $payload = $this->_setup($key);
+    $payload = $this->_setup($this->_key);
     $i = 0;
     $j = 0;
     for($c = 0; $c < $length; $c++) {

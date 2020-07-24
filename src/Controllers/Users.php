@@ -1,7 +1,5 @@
 <?php
 
-namespace AfekaFace\Controllers;
-
 class Users {
   
   private $_encryptor;
@@ -9,6 +7,94 @@ class Users {
   private $_model;
   private $_view;
   private $_view_authentication;
+
+  public function addOrApproveFriend($req_uri) {
+    $error = null;
+    $friend_id = null;
+    $relationship_status = null;
+    $result = null;
+    $user_id = null;
+    try {
+      $user_id = $this->_userIdFromReqUri($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the user_id from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $friend_id = $this->_friendIdFromReqUriForRelationshipStatus($req_uri);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the user_id from the request URI";
+      return json_encode($error);
+    }
+    try {
+      $relationship_status = $this->_model_friends->status($user_id, $friend_id);
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to retrieve the relationship status from the database";
+      return json_encode($error);
+    }
+    try {
+      if($relationship_status == $GLOBALS["friend_status"]["unacquainted"]) {
+        $this->_model_friends->statusToRequestSent($user_id, $friend_id);
+        $result = "changed";
+      }
+      else if($relationship_status == $GLOBALS["friend_status"]["pending_approval"]) {
+        $this->_model_friends->statusToApproved($user_id, $friend_id);
+        $result = "changed";
+      }
+      else {
+        $result = "unchanged";
+      }
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed to update the relationship status in the database";
+      return json_encode($error);
+    }
+    return $result;
+  }
+  
+  public function authorized($rc4_encrypted_data) {
+    $credentials_raw = $this->_encryptor->decrypt($rc4_encrypted_data);
+    $credentials = json_decode($credentials_raw);
+    if($this->_model->isPersisted($credentials->first_name, $credentials->last_name)) {
+      $user_id = $this->_model->userId(
+        $credentials->first_name,
+        $credentials->last_name,
+        $rc4_encrypted_data
+      );
+      return isset($user_id);
+    }
+    return false;
+  }
+
+  public function existing($rc4_encrypted_data) {
+    $result = null;
+    $credentials_raw = $this->_encryptor->decrypt($rc4_encrypted_data);
+    $credentials = json_decode($credentials_raw);
+    if($this->_model->isPersisted($credentials->first_name, $credentials->last_name)) {
+      $user_id = $this->_model->userId(
+        $credentials->first_name,
+        $credentials->last_name,
+        $rc4_encrypted_data
+      );
+      if(isset($user_id)) {
+        $result->id = $user_id;
+      }
+      else {
+        $result->error = "Wrong password";
+      }
+    }
+    else {
+      $result->error = "No user has the provided information.";
+    }
+    return $result;
+  }
 
   public function htmlContainer($req_uri) {
     $error = null;
@@ -100,7 +186,7 @@ class Users {
     }
     if($this->_userLegal($friend)) {
       try {
-        $result = $this->_view->viewFriend($friend);
+        $result = $this->_view->viewFriend($user_id, $friend);
         return $result;
       } catch(Exception $err) {
         $error->status = "Error";
@@ -152,14 +238,19 @@ class Users {
       foreach($others as $other) {
         if($this->_userLegal($other)) {
           $status = $this->_model_friends->status($user_id, $other->id);
-          if($status == "approved" || $status == "request sent") {
-            $other->actions = array("remove");
+          if($status == $GLOBALS["friend_status"]["approved"] || 
+              $status == $GLOBALS["friend_status"]["request_sent"]
+            ) {
+              $other->actions = array($GLOBALS["friend_action"]["remove"]);
           }
           else if($status == "pending approval") {
-            $other->actions = array("add", "remove");
+            $other->actions = array(
+              $GLOBALS["friend_action"]["add"],
+              $GLOBALS["friend_action"]["remove"]
+            );
           }
           else {
-            $other->actions = array("add");
+            $other->actions = array($GLOBALS["friend_action"]["add"]);
           }
         }
         else {
@@ -190,7 +281,7 @@ class Users {
 
   public function new($rc4_encrypted_data) {
     $result = null;
-    $credentials_raw = $this->_encryptor->decrypt($rc4_encrypted_data, "abcde");
+    $credentials_raw = $this->_encryptor->decrypt($rc4_encrypted_data);
     $credentials = json_decode($credentials_raw);
     if($this->_model->isPersisted($credentials->first_name, $credentials->last_name)) {
       $result->error = "user exists";
@@ -232,14 +323,14 @@ class Users {
   }
 
   private function _friendsData($relationships) {
-    return array_map(
-      function($relationship) {
-        $result = $this->_model->details($relationship->id);
-        $result->status = $relationship->status;
-        return $result;
-      },
-      $relationships
-    );
+    $result = array();
+    foreach($relationships as $relationship) {
+      $next = null;
+      $next = $this->_model->details($relationship->id);
+      $next->status = $relationship->status;
+      array_push($result, $next);
+    }
+    return $result;
   }
 
   private function _friendsDataLegal($friends) {
@@ -260,8 +351,21 @@ class Users {
     return intval($splitted[4]);
   }
 
+  private function _friendIdFromReqUriForRelationshipStatus($req_uri) {
+    $splitted = explode("/", $req_uri);
+    return intval($splitted[5]);
+  }
+
   private function _friendsRelationshipsLegal($relationships) {
-    return isset($relationships);
+    if(isset($relationships)) {
+      foreach($relationships as $relationship) {
+        if(!isset($relationship->id) || !isset($relationship->status)) {
+          return false;
+        }
+      }
+      return true;
+    }
+    return false;
   }
 
   private function _usersFilterFromReqURI($req_uri) {
@@ -292,3 +396,5 @@ class Users {
   }
 
 }
+
+?>
