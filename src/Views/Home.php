@@ -9,3 +9,5 @@ class HomeView {
     return $result;
   }
 }
+
+?>

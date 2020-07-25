@@ -73,33 +73,18 @@ class Friends {
   }
 
   public function statusToApproved($user_id, $friend_id) {
-    $status = $GLOBALS["friend_status"]["approved"];
-    $query = "UPDATE friends SET status = \"$status\"";
-    $query = $query . " WHERE user_id = $user_id AND friend_id = $friend_id;";
-    $this->_db->execute($query);
-    $query = "UPDATE friends SET status = \"$status\"";
-    $query = $query . " WHERE user_id = $friend_id AND friend_id = $user_id;";
-    return $this->_db->execute($query);
+    $this->_updateStatus($user_id, $friend_id, $GLOBALS["friend_status"]["approved"]);
+    $this->_updateStatus($friend_id, $user_id, $GLOBALS["friend_status"]["approved"]);
   }
 
   public function statusToUnacquainted($user_id, $friend_id) {
-    $query = "DELETE FROM friends WHERE";
-    $query = $query . " user_id = $user_id AND friend_id = $friend_id";
-    $this->_db->execute($query);
-    $query = "DELETE FROM friends WHERE";
-    $query = $query . " user_id = $friend_id AND friend_id = $user_id";
-    $this->_db->execute($query);
+    $this->_removeRelationship($user_id, $friend_id);
+    $this->_removeRelationship($friend_id, $user_id);
   }
 
   public function statusToRequestSent($user_id, $friend_id) {
-    $status = $GLOBALS["friend_status"]["request_sent"];
-    $query = "INSERT INTO friends VALUES($user_id, $friend_id,";
-    $query = $query . " \"$status\");";
-    $this->_db->execute($query);
-    $status = $GLOBALS["friend_status"]["pending_approval"];
-    $query = "INSERT INTO friends VALUES($friend_id, $user_id,";
-    $query = $query . " \"$status\");";
-    return $this->_db->execute($query);
+    $this->_updateStatus($user_id, $friend_id, $GLOBALS["friend_status"]["request_sent"]);
+    $this->_updateStatus($friend_id, $user_id, $GLOBALS["friend_status"]["pending_approval"]);
   }
 
   private function _allRelationships() {
@@ -161,6 +146,17 @@ class Friends {
     array_push($users, $user);
 
     return $users;
+  }
+
+  private function _removeRelationship($user_id, $friend_id) {
+    $query = "DELETE FROM friends WHERE";
+    $query = $query . " user_id = $user_id AND friend_id = $friend_id";
+  }
+
+  private function _updateStatus($user_id, $friend_id, $status) {
+    $query = "UPDATE friends SET status = \"$status\"";
+    $query = $query . " WHERE user_id = $user_id AND friend_id = $friend_id;";
+    $this->_db->execute($query);
   }
 
 }

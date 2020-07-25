@@ -18,7 +18,7 @@ function filterProvided(element) {
       otherUsers(credentials_container.getId(), filter);
     }
     else {
-      console.error("The values in the user search can be letters, * or whitespaces");
+      alert("The values in the user search can be letters, * or whitespaces");
       element.target.value = "*";
       handleFilterUsersInput();
     }
@@ -40,21 +40,20 @@ function otherUsers(user_id, filter) {
       if (xhr.status === 200) {
         try {
           let response = JSON.parse(xhr.responseText);
-          console.error(response["reason"]);
-          alert(response["message"]);
+          alert(response["reason"] + "\n\n" + response["message"]);
         } catch(err) {
           updateOtherUsersList(xhr.responseText);
           handleFilterUsersInput();
           return;
         }
       } else {
-        console.error(xhr.statusText);
+        alert(xhr.statusText);
       }
       window.location.href = "http://localhost:8000/";
     }
   };
   xhr.onerror = function(e) {
-    console.error(xhr.statusText);
+    alert(xhr.statusText);
     window.location.href = "http://localhost:8000/";
   };
   xhr.send(payload);

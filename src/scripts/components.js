@@ -8,22 +8,20 @@ function userHome(user_id) {
       if (xhr.status === 200) {
         try {
           let response = JSON.parse(xhr.responseText);
-          console.error(response["reason"]);
-          alert(response["message"]);
+          alert(response["reason"] + "\n\n" + response["message"]);
         } catch(err) {
-          console.log("TUPAYA PIZDA");
           document.getElementById("application").innerHTML = xhr.responseText;
           handleFilterUsersInput();
           return;
         }
       } else {
-        console.error(xhr.statusText);
+        alert(xhr.statusText);
       }
       window.location.href = "http://localhost:8000/";
     }
   };
   xhr.onerror = function(e) {
-    console.error(xhr.statusText);
+    alert(xhr.statusText);
     window.location.href = "http://localhost:8000/";
   };
   xhr.send(payload);
@@ -39,20 +37,19 @@ function userFriend(user_id, friend_id) {
       if (xhr.status === 200) {
         try {
           let response = JSON.parse(xhr.responseText);
-          console.error(response["reason"]);
-          alert(response["message"]);
+          alert(response["reason"] + "\n\n" + response["message"]);
         } catch(err) {
           document.getElementById("application").innerHTML = xhr.responseText;
           return;
         }
       } else {
-        console.error(xhr.statusText);
+        alert(xhr.statusText);
       }
       window.location.href = "http://localhost:8000/";
     }
   };
   xhr.onerror = function(e) {
-    console.error(xhr.statusText);
+    alert(xhr.statusText);
     window.location.href = "http://localhost:8000/";
   };
   xhr.send(payload);

@@ -5,44 +5,47 @@ class Database {
   private $_conn;
 
   public function closeConnection() {
-    $this->_conn->close();
+    if($this->_conn->close()) {
+      $this->_conn = null;
+      return;
+    }
+    throw new Exception("Connection to the database has not been terminated as expected");
   }
 
   public function execute($query) {
     $stmt = $this->_conn->prepare($query);
-    $stmt->execute();
-    $stmt->close();
+    if($stmt == FALSE) {
+      throw new Exception("Failed to prepare the SQL statement\n$query");
+    }
+    if(!$stmt->execute()) {
+      throw new Exception("Failed to executed a prepared statement\n$query");
+    }
+    if(!$stmt->close()) {
+      throw new Exception("Failed to close an executed statement\n$query");
+    }
   }
 
   public function initConnection() {
-    if(isset($this->_conn)) {
-      return;
-    }
-    $this->_conn = new mysqli("localhost", "root", "root", "afeka_face");
-    if($this->_conn->connect_errno) {
-      echo "Database connection failed" . $mysqli->connect_error;
-      exit(1);
+    if(!isset($this->_conn)) {
+      $this->_conn = new mysqli("localhost", "root", "root", "afeka_face");
+      if($this->_conn->connect_errno()) {
+        throw new Exception("Connection to the database has failed." . $mysqli->connect_error());
+      }
     }
   }
 
   public function query($query) {
     $result = array();
     $response = $this->_conn->query($query);
+    if($response == FALSE) {
+      throw new Exception("Failed to query the database with\n$query");
+    }
     while($row = $response->fetch_assoc()) {
       array_push($result, $row);
     }
     $response->free();
     $response->close();
     return $result;
-  }
-
-  private function _dropFriends() {
-    $query = "DROP TABLE IF EXISTS friends";
-    $this->_executeQuery($query);
-  }
-
-  private function _createFriends() {
-    
   }
 }
 

@@ -11,41 +11,40 @@ class Router {
     $this->_setHeader();
     $this->_setFooter();
     $error = null;
-    $req_uri = $_SERVER['REQUEST_URI'];
     $req_method = $_SERVER['REQUEST_METHOD'];
+    $req_uri = $_SERVER['REQUEST_URI'];
     $result = $this->_header;
     if(preg_match('#^/$#', $req_uri) && $req_method == "GET") {
-      // TODO: CSS
       return $this->_home->htmlContainer();
     }
     else if(preg_match("#^/login$#", $req_uri) && $req_method == "GET") {
-      // TODO: CSS
-      $result = $result . $this->_loginView();
-      return $result . $this->_footer;
+      $login_view = $this->_loginView();
+      if(isset($login_view->status) && isset($login_view->reason) && isset($login_view->message)) {
+        return json_encode($login_view);
+      }
+      return $result . $login_view . $this->_footer;
     }
     else if(preg_match("#^/login$#", $req_uri) && $req_method == "POST") {
-      // TODO: CSS
-      $result = $this->_loginToAccount(file_get_contents('php://input'));
-      if(isset($result->id)) {
-        return "{\"id\":$result->id}";
-      } else {
-        return "{\"error\":\"$result->error\"}";
+      $response = $this->_loginToAccount(file_get_contents('php://input'));
+      if(isset($response->status) && isset($response->reason) && isset($response->message)) {
+        return json_encode($response);
       }
+      return $response;
     }
     
     else if(preg_match("#^/signup$#", $req_uri) && $req_method == "GET") {
-      // TODO: CSS
-      $result = $result . $this->_signupView();
-      return $result . $this->_footer;
+      $singupView = $this->_signupView();
+      if(isset($singupView->status) && isset($singupView->reason) && isset($singupView->message)) {
+        return json_encode($singupView);
+      }
+      return $result . $singupView . $this->_footer;
     }
     else if(preg_match("#^/signup$#", $req_uri) && $req_method == "POST") {
-      // TODO: CSS
-      $result = $this->_createAccount(file_get_contents('php://input'));
-      if(isset($result->id)) {
-        return "{\"id\":$result->id}";
-      } else {
-        return "{\"error\":\"$result->error\"}";
+      $response = $this->_createAccount(file_get_contents('php://input'));
+      if(isset($response->status) && isset($response->reason) && isset($response->message)) {
+        return json_encode($response);
       }
+      return $response;
     }
     
     else if(preg_match("#^/users/[0-9]+$#", $req_uri) && $req_method == "POST") {
@@ -54,47 +53,50 @@ class Router {
       if(isset($user_view->status) && isset($user_view->reason) && isset($user_view->message)) {
         return json_encode($user_view);
       }
-      $result = $result . $user_view;
-      $result = $result . "<div id=\"others_container\">";
+      $result = $result . $user_view . "<div id=\"others_container\">";
       $other_users_list = $this->_otherUsersList(
         $req_uri . "/friends/new/",
         file_get_contents('php://input')
       );
-      $result = $result . $other_users_list . "</div>";
-      return $result . $this->_footer;
+      if(isset($other_users_list->status) &&
+          isset($other_users_list->reason) &&
+          isset($other_users_list->message)
+        ) {
+          return json_encode($other_users_list);
+      }
+      return $result . $other_users_list . "</div>" . $this->_footer;
     }
     else if(preg_match("#^/users/[0-9]+/friends/[0-9]+$#", $req_uri) && $req_method == "POST") {
       // TODO: Show posts
       $friend_view = $this->_userFriendView($req_uri, file_get_contents('php://input'));
       if(isset($friend_view->status) &&
-        isset($friend_view->reason) &&
-        isset($friend_view->message)
+          isset($friend_view->reason) &&
+          isset($friend_view->message)
         ) {
           return json_encode($friend_view);
       }
       return $this->_header . $friend_view . $this->_footer;
     }
     else if(
-      preg_match("#^/users/[0-9]+/friends/add/[0-9]+$#", $req_uri) && $req_method == "POST"
-    ) {
-      $response = $this->_addFriend($req_uri, file_get_contents('php://input'));
-      if(isset($response->status) &&
-          isset($response->reason) &&
-          isset($response->message)
-        ) {
-          return json_encode($response);
-      }
-      return $response;
+        preg_match("#^/users/[0-9]+/friends/add/[0-9]+$#", $req_uri) && $req_method == "POST"
+      ) {
+        $response = $this->_addFriend($req_uri, file_get_contents('php://input'));
+        if(isset($response->status) &&
+            isset($response->reason) &&
+            isset($response->message)
+          ) {
+            return json_encode($response);
+        }
+        return $response;
     }
     else if(
       preg_match("#^/users/[0-9]+/friends/new/[a-z|A-Z|]*[%20]*[a-z|A-Z]*$#", $req_uri) &&
       $req_method == "POST"
       ) {
-        // TODO: CSS
         $other_users_list = $this->_otherUsersList($req_uri, file_get_contents('php://input'));
         if(isset($other_users_list->status) &&
-          isset($other_users_list->reason) &&
-          isset($other_users_list->message)
+            isset($other_users_list->reason) &&
+            isset($other_users_list->message)
           ) {
             return json_encode($other_users_list);
         }
@@ -103,26 +105,26 @@ class Router {
     else if(
       preg_match("#^/users/[0-9]+/friends/remove/[0-9]+$#", $req_uri) &&
       $req_method == "POST"
-    ) {
-      $response = $this->_removeFriend($req_uri, file_get_contents('php://input'));
-      if(isset($response->status) &&
-          isset($response->reason) &&
-          isset($response->message)
-        ) {
-          return json_encode($response);
-      }
-      return $response;
+      ) {
+        $response = $this->_removeFriend($req_uri, file_get_contents('php://input'));
+        if(isset($response->status) &&
+            isset($response->reason) &&
+            isset($response->message)
+          ) {
+            return json_encode($response);
+        }
+        return $response;
     }
 
     else if(
-      preg_match("#^/users/[0-9]+/friends/[0-9]+/posts$#", $req_uri) &&
-      $req_method == "GET"
+        preg_match("#^/users/[0-9]+/friends/[0-9]+/posts$#", $req_uri) &&
+        $req_method == "GET"
       ) {
         return "user id friends posts view";
     }
     else if(
-      preg_match("#^/users/[0-9]+/friends/[0-9]+/posts/[0-9]+$#", $req_uri) &&
-      $req_method == "GET"
+        preg_match("#^/users/[0-9]+/friends/[0-9]+/posts/[0-9]+$#", $req_uri) &&
+        $req_method == "GET"
       ) {
         return "user id friends posts id view";
     }
@@ -148,10 +150,8 @@ class Router {
 
   private function _addFriend($req_uri, $payload) {
     try {
-      $result = null;
       if($this->_users->authorized($payload)) {
-        $result = $this->_users->addOrApproveFriend($req_uri);
-        return $result;
+        return $this->_users->addOrApproveFriend($req_uri);
       }
       throw new Exception("You are not authorized.\nPlease login.");
     } catch(Exception $err) {
@@ -163,31 +163,52 @@ class Router {
   }
 
   private function _createAccount($payload) {
-    return $this->_users->new($payload);
+    try {
+      $result = $this->_users->new($payload);
+      if(isset($result->id)) {
+        return "{\"id\":$result->id}";
+      } else {
+        return "{\"error\":\"$result->error\"}";
+      }
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed at creating new account";
+      return $error;
+    }
   }
 
   private function _loginToAccount($payload) {
-    return $this->_users->existing($payload);
+    try {
+      $result = $this->_users->existing($payload);
+      if(isset($result->id)) {
+        return "{\"id\":$result->id}";
+      } else {
+        return "{\"error\":\"$result->error\"}";
+      }
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed at loggin into the existing account";
+      return $error;
+    }
   }
 
   private function _loginView() {
     try {
-      $result = $this->_users->htmlContainerLogin();
-      return $result;
+      return $this->_users->htmlContainerLogin();
     } catch(Exception $err) {
       $error->status = "Error";
       $error->reason = $err->getMessage();
-      $error->message = "Failed at responding with the login container";
+      $error->message = "Failed at generating the login container";
       return json_encode($error);
     }
   }
 
   private function _otherUsersList($req_uri, $payload) {
     try {
-      $result = null;
       if($this->_users->authorized($payload)) {
-        $result = $this->_users->htmlContainerOthers($req_uri);
-        return $result;
+        return $this->_users->htmlContainerOthers($req_uri);
       }
       throw new Exception("You are not authorized.\nPlease login.");
     } catch(Exception $err) {
@@ -217,10 +238,8 @@ class Router {
 
   private function _removeFriend($req_uri, $payload) {
     try {
-      $result = null;
       if($this->_users->authorized($payload)) {
-        $result = $this->_users->removeFriend($req_uri);
-        return $result;
+        return $this->_users->removeFriend($req_uri);
       }
       throw new Exception("You are not authorized.\nPlease login.");
     } catch(Exception $err) {
@@ -233,8 +252,7 @@ class Router {
 
   private function _signupView() {
     try {
-      $result = $this->_users->htmlContainerSignup();
-      return $result;
+      return $this->_users->htmlContainerSignup();
     } catch(Exception $err) {
       $error->status = "Error";
       $error->reason = $err->getMessage();
@@ -244,12 +262,9 @@ class Router {
   }
 
   private function _userView($req_uri, $payload) {
-    // Tested
     try {
-      $result = null;
       if($this->_users->authorized($payload)) {
-        $result = $this->_users->htmlContainer($req_uri);
-        return $result;
+        return $this->_users->htmlContainer($req_uri);
       }
       throw new Exception("You are not authorized.\nPlease login.");
     } catch(Exception $err) {
@@ -261,12 +276,9 @@ class Router {
   }
 
   private function _userFriendView($req_uri, $payload) {
-    // Tested
     try {
-      $result = null;
       if($this->_users->authorized($payload)) {
-        $result = $this->_users->htmlContainerFriend($req_uri);
-        return $result;
+        return $this->_users->htmlContainerFriend($req_uri);
       }
       throw new Exception("You are not authorized.\nPlease login.");
     } catch(Exception $err) {
@@ -277,3 +289,5 @@ class Router {
     }
   }
 }
+
+?>

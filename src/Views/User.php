@@ -36,3 +36,5 @@ class UserView {
     return $result . "</ul>";
   }
 }
+
+?>
