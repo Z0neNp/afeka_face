@@ -10,9 +10,9 @@ class Users {
 
   public function addOrApproveFriend($req_uri) {
     $friend_id = $this->_friendIdFromReqUriForRelationshipStatus($req_uri);
+    $user_id = $this->_userIdFromReqUri($req_uri);
     $relationship_status = $this->_model_friends->status($user_id, $friend_id);
     $result = "unchanged";
-    $user_id = $this->_userIdFromReqUri($req_uri);
     if($relationship_status == $GLOBALS["friend_status"]["unacquainted"]) {
       $this->_model_friends->statusToRequestSent($user_id, $friend_id);
       $result = "changed";

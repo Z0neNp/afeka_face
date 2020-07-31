@@ -17,10 +17,12 @@ class Database {
     if($stmt == FALSE) {
       throw new Exception("Failed to prepare the SQL statement\n$query");
     }
-    if(!$stmt->execute()) {
+    $result = $stmt->execute();
+    if(!$result) {
       throw new Exception("Failed to executed a prepared statement\n$query");
     }
-    if(!$stmt->close()) {
+    $result = $stmt->close();
+    if(!$result) {
       throw new Exception("Failed to close an executed statement\n$query");
     }
   }
@@ -28,7 +30,7 @@ class Database {
   public function initConnection() {
     if(!isset($this->_conn)) {
       $this->_conn = new mysqli("localhost", "root", "root", "afeka_face");
-      if($this->_conn->connect_errno()) {
+      if($this->_conn->connect_errno) {
         throw new Exception("Connection to the database has failed." . $mysqli->connect_error());
       }
     }

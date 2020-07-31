@@ -15,7 +15,7 @@ class Router {
     $req_uri = $_SERVER['REQUEST_URI'];
     $result = $this->_header;
     if(preg_match('#^/$#', $req_uri) && $req_method == "GET") {
-      return $this->_home->htmlContainer();
+      return $result . $this->_home->htmlContainer() . $this->_footer;
     }
     else if(preg_match("#^/login$#", $req_uri) && $req_method == "GET") {
       $login_view = $this->_loginView();
@@ -148,6 +148,24 @@ class Router {
     $this->_home = $controller;
   }
 
+  private function _bootstrapCssLink() {
+    $result = "<link rel=\"stylesheet\" href=\"https://stackpath.bootstrapcdn.com/bootstrap/4.5.0";
+    $result = $result . "/css/bootstrap.min.css\" integrity=\"sha384-9aIt2nRpC12Uk9gS9baDl411NQAp";
+    return $result . "FmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk\" crossorigin=\"anonymous\">";
+  }
+
+  private function _bootstrapJsLink() {
+    $result = "<script src=\"https://code.jquery.com/jquery-3.5.1.slim.min.js\"";
+    $result = $result . "integrity=\"sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamo";
+    $result = $result . "FVy38MVBnE+IbbVYUew+OrCXaRkfj\" crossorigin=\"anonymous\"></script>";
+    $result = $result . "<script src=\"https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd";
+    $result = $result . "/popper.min.js\" integrity=\"sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9I";
+    $result = $result . "OYy5n3zV9zzTtmI3UksdQRVvoxMfooAo\" crossorigin=\"anonymous\"></script>";
+    $result = $result . "<script src=\"https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/";
+    $result = $result . "bootstrap.min.js\" integrity=\"sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835";
+    return $result . "Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI\" crossorigin=\"anonymous\"></script>";
+  }
+
   private function _addFriend($req_uri, $payload) {
     try {
       if($this->_users->authorized($payload)) {
@@ -228,12 +246,16 @@ class Router {
     $result = $result . "src=\"/src/scripts/relationship.js\"></script>";
     $result = $result . "<script type=\"text/javascript\"";
     $result = $result . "src=\"/src/scripts/authentication.js\"></script>";
-    $this->_footer = $result . "</div></body></html>";
+    $result = $result . $this->_bootstrapJsLink() . "</div></body></html>";
+    $this->_footer = $result;
   }
 
   private function _setHeader() {
     $result = "<html><head><script type=\"text/javascript\" src=\"/src/scripts/components.js\">";
-    $this->_header = $result . "</script></head><body><div id=\"application\">";
+    $result = $result . "</script><meta name=\"viewport\" content=\"width=device-width, ";
+    $result = $result . "initial-scale=1, shrink-to-fit=no\">" . $this->_bootstrapCssLink();
+    $result = $result . "</head><body>";
+    $this->_header = $result . "<div id=\"application\" class=\"containter\">";
   }
 
   private function _removeFriend($req_uri, $payload) {

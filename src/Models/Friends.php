@@ -83,8 +83,13 @@ class Friends {
   }
 
   public function statusToRequestSent($user_id, $friend_id) {
-    $this->_updateStatus($user_id, $friend_id, $GLOBALS["friend_status"]["request_sent"]);
-    $this->_updateStatus($friend_id, $user_id, $GLOBALS["friend_status"]["pending_approval"]);
+    $this->_addRelationship($user_id, $friend_id, $GLOBALS["friend_status"]["request_sent"]);
+    $this->_addRelationship($friend_id, $user_id, $GLOBALS["friend_status"]["pending_approval"]);
+  }
+
+  private function _addRelationship($user_id, $friend_id, $status) {
+    $query = "INSERT INTO friends VALUES ($user_id, $friend_id, \"$status\");";
+    $this->_db->execute($query);
   }
 
   private function _allRelationships() {
@@ -151,6 +156,7 @@ class Friends {
   private function _removeRelationship($user_id, $friend_id) {
     $query = "DELETE FROM friends WHERE";
     $query = $query . " user_id = $user_id AND friend_id = $friend_id";
+    $this->_db->execute($query);
   }
 
   private function _updateStatus($user_id, $friend_id, $status) {

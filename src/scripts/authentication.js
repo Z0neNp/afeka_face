@@ -52,7 +52,7 @@ function login() {
   if(credentials) {
     credentials_container.set(credentials);
     payload = credentials_container.get();
-    xhr.open("POST", `${window.location.href}`, true);
+    xhr.open("POST", `/login`, true);
     xhr.setRequestHeader("Content-Type", "application/text");
     xhr.onload = function(e) {
       if(xhr.readyState === 4) {
@@ -83,7 +83,7 @@ function signup() {
   if(credentials) {
     credentials_container.set(credentials);
     payload = credentials_container.get();
-    xhr.open("POST", `${window.location.href}`, true);
+    xhr.open("POST", `/signup`, true);
     xhr.setRequestHeader("Content-Type", "application/text");
     xhr.onload = function(e) {
       if(xhr.readyState === 4) {

@@ -3,20 +3,35 @@
 class AuthenticationView {
 
   public function userDetails() {
-    $result = "<div><label for=\"first_name\">First name: </label>";
-    $result = $result . "<input type=\"text\" id=\"first_name\" name=\"first_name\"><br><br>";
-    $result = $result . "<label for=\"last_name\">Last name: </label>";
-    $result = $result . "<input type=\"text\" id=\"last_name\" name=\"last_name\"><br><br>";
-    $result = $result . "<label for=\"password\">Password: </label>";
-    return $result . "<input type=\"password\" id=\"password\" name=\"password\"><br><br>";
+    $result = "<form>";
+    
+    $result = $result . "<div class=\"form-group\"><label for=\"first_name\">First name</label>";
+    $result = $result . "<input type=\"text\" id=\"first_name\" class=\"form-control\"";
+    $result = $result . " name=\"first_name\">";
+    $result = $result . "<small id=\"first_name_help\" class=\"form-text text-muted\">";
+    $result = $result . "I.e. John</small></div>";
+
+    $result = $result . "<div class=\"form-group\"><label for=\"last_name\">Last name</label>";
+    $result = $result . "<input type=\"text\" id=\"last_name\" class=\"form-control\"";
+    $result = $result . " name=\"last_name\">";
+    $result = $result . "<small id=\"last_name_help\" class=\"form-text text-muted\">";
+    $result = $result . "I.e. Doe</small></div>";
+
+    $result = $result . "<div class=\"form-group\"><label for=\"password\">Password</label>";
+    $result = $result . "<input type=\"password\" id=\"password\" class=\"form-control\"";
+    return $result . " name=\"password\"></div></form>";
   }
 
   public function containerLogin() {
-    return $this->userDetails() . "<input type=\"submit\" value=\"Submit\" onclick=\"login()\"></div>";
+    $user_details = $this->userDetails();
+    $result = $user_details . "<button class=\"btn btn-primary\" style=\"width:100%;\"";
+    return $result . " onclick=\"login()\">Submit</button>";
   }
   
   public function containerSignup() {
-    return $this->userDetails() . "<input type=\"submit\" value=\"Submit\" onclick=\"signup()\"></div>";
+    $user_details = $this->userDetails();
+    $result = $user_details . "<button class=\"btn btn-primary\" style=\"width:100%;\"";
+    return $result . " onclick=\"signup()\">Submit</button></div>";
   }
 }
 
