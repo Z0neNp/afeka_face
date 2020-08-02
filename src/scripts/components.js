@@ -11,6 +11,7 @@ function userHome(user_id) {
           alert(response["reason"] + "\n\n" + response["message"]);
         } catch(err) {
           document.getElementById("application").innerHTML = xhr.responseText;
+          updatePostsContainer();
           handleFilterUsersInput();
           return;
         }
@@ -40,6 +41,7 @@ function userFriend(user_id, friend_id) {
           alert(response["reason"] + "\n\n" + response["message"]);
         } catch(err) {
           document.getElementById("application").innerHTML = xhr.responseText;
+          updateFriendPostsContainer(friend_id);
           return;
         }
       } else {

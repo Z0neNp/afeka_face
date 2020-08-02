@@ -7,6 +7,11 @@ class Router {
   private $_users;
   private $_home;
 
+  private $_user_model;
+  private $_friends_model;
+  private $_post_model;
+  private $_picture_model;
+
   public function run() {
     $this->_setHeader();
     $this->_setFooter();
@@ -129,23 +134,67 @@ class Router {
         return "user id friends posts id view";
     }
 
-    else if(preg_match("#^/users/[0-9]+/posts$#", $req_uri) && $req_method == "GET") {
-      return "user id posts view";
+    else if(preg_match("#^/users/[0-9]+/posts$#", $req_uri) && $req_method == "POST") {
+      $response = $this->_posts($req_uri, file_get_contents('php://input'));
+      if(isset($response->status) &&
+          isset($response->reason) &&
+          isset($response->message)
+        ) {
+          return json_encode($response);
+      }
+      return $response;
     }
-    else if(preg_match("#^/users/[0-9]+/posts/[0-9]+$#", $req_uri) && $req_method == "GET") {
-      return "user id post id view";
+    else if(preg_match("#^/users/[0-9]+/friends/[0-9]+/posts$#", $req_uri)
+      && $req_method == "POST"
+      ) {
+        $response = $this->_postsFriend($req_uri, file_get_contents('php://input'));
+        if(isset($response->status) &&
+            isset($response->reason) &&
+            isset($response->message)
+          ) {
+            return json_encode($response);
+        }
+        return $response;
+    }
+    else if(preg_match("#^/reset_database$#", $req_uri) && $req_method == "GET") {
+      $response = $this->_resetDatabase();
+      if(isset($response->status) &&
+          isset($response->reason) &&
+          isset($response->message)
+        ) {
+          return json_encode($response);
+      }
+      return $response;
     }
     else {
-      return "page not found";
+      $response->status = "Error";
+      $response->reason = "Page not found";
+      return json_encode($response);
     }
-  }
-
-  public function setUsersController($controller) {
-    $this->_users = $controller;
   }
 
   public function setHomeController($controller) {
     $this->_home = $controller;
+  }
+
+  public function setModelFriends($model) {
+   $this->_friends_model = $model; 
+  }
+
+  public function setModelPicture($model) {
+    $this->_picture_model = $model; 
+  }
+
+  public function setModelPost($model) {
+    $this->_post_model = $model; 
+  }
+
+  public function setModelUser($model) {
+    $this->_user_model = $model; 
+  }
+
+  public function setUsersController($controller) {
+    $this->_users = $controller;
   }
 
   private function _bootstrapCssLink() {
@@ -237,25 +286,32 @@ class Router {
     }
   }
 
-  private function _setFooter() {
-    $result = "<script type=\"text/javascript\"";
-    $result = $result . "src=\"/src/scripts/rc4_encryption.js\"></script>";
-    $result = $result . "<script type=\"text/javascript\"";
-    $result = $result . "src=\"/src/scripts/filter_users.js\"></script>";
-    $result = $result . "<script type=\"text/javascript\"";
-    $result = $result . "src=\"/src/scripts/relationship.js\"></script>";
-    $result = $result . "<script type=\"text/javascript\"";
-    $result = $result . "src=\"/src/scripts/authentication.js\"></script>";
-    $result = $result . $this->_bootstrapJsLink() . "</div></body></html>";
-    $this->_footer = $result;
+  private function _posts($req_uri, $payload) {
+    try {
+      if($this->_users->authorized($payload)) {
+        return $this->_users->htmlContainerPosts($req_uri);
+      }
+      throw new Exception("You are not authorized.\nPlease login.");
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed at pulling user posts";
+      return $error;
+    }
   }
 
-  private function _setHeader() {
-    $result = "<html><head><script type=\"text/javascript\" src=\"/src/scripts/components.js\">";
-    $result = $result . "</script><meta name=\"viewport\" content=\"width=device-width, ";
-    $result = $result . "initial-scale=1, shrink-to-fit=no\">" . $this->_bootstrapCssLink();
-    $result = $result . "</head><body>";
-    $this->_header = $result . "<div id=\"application\" class=\"containter\">";
+  private function _postsFriend($req_uri, $payload) {
+    try {
+      if($this->_users->authorized($payload)) {
+        return $this->_users->htmlContainerPostsFriend($req_uri);
+      }
+      throw new Exception("You are not authorized.\nPlease login.");
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed at pulling user's friend posts";
+      return $error;
+    }
   }
 
   private function _removeFriend($req_uri, $payload) {
@@ -270,6 +326,52 @@ class Router {
       $error->message = "Failed at updating relationship with the user";
       return $error;
     }
+  }
+
+  private function _resetDatabase() {
+    try {
+      $this->_friends_model->drop();
+      $this->_picture_model->drop();
+      $this->_post_model->drop();
+      $this->_user_model->drop();
+      $this->_user_model->createScheme();
+      $this->_user_model->populate();
+      $this->_friends_model->createScheme();
+      $this->_friends_model->populate();
+      $this->_post_model->createScheme();
+      $this->_post_model->populate();
+      $this->_picture_model->createScheme();
+      $this->_picture_model->populate();
+      return "Database has been reset";
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed at resetting the database";
+      return $error;
+    }
+  }
+
+  private function _setFooter() {
+    $result = "<script type=\"text/javascript\"";
+    $result = $result . "src=\"/src/scripts/rc4_encryption.js\"></script>";
+    $result = $result . "<script type=\"text/javascript\"";
+    $result = $result . "src=\"/src/scripts/filter_users.js\"></script>";
+    $result = $result . "<script type=\"text/javascript\"";
+    $result = $result . "src=\"/src/scripts/relationship.js\"></script>";
+    $result = $result . "<script type=\"text/javascript\"";
+    $result = $result . "src=\"/src/scripts/authentication.js\"></script>";
+    $result = $result . "<script type=\"text/javascript\"";
+    $result = $result . "src=\"/src/scripts/posts.js\"></script>";
+    $result = $result . $this->_bootstrapJsLink() . "</div></body></html>";
+    $this->_footer = $result;
+  }
+
+  private function _setHeader() {
+    $result = "<html><head><script type=\"text/javascript\" src=\"/src/scripts/components.js\">";
+    $result = $result . "</script><meta name=\"viewport\" content=\"width=device-width, ";
+    $result = $result . "initial-scale=1, shrink-to-fit=no\">" . $this->_bootstrapCssLink();
+    $result = $result . "</head><body>";
+    $this->_header = $result . "<div id=\"application\" class=\"containter\">";
   }
 
   private function _signupView() {

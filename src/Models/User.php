@@ -6,7 +6,7 @@ class User {
   private $_users;
 
   public function createScheme() {
-    $query = "CREATE TABLE IF NOT EXISTS users(";
+    $query = "CREATE TABLE IF NOT EXISTS user(";
     $query = $query . "id INT AUTO_INCREMENT,";
     $query = $query . "first_name VARCHAR(25) NOT NULL,";
     $query = $query . "last_name VARCHAR(25) NOT NULL,";
@@ -27,7 +27,7 @@ class User {
   }
 
   public function drop() {
-    $query = "DROP TABLE IF EXISTS users;";
+    $query = "DROP TABLE IF EXISTS user;";
     $this->_db->execute($query);
   }
 
@@ -37,7 +37,7 @@ class User {
   }
 
   public function new($first_name, $last_name, $password) {
-    $query = "INSERT INTO users(first_name, last_name, password) VALUES";
+    $query = "INSERT INTO user(first_name, last_name, password) VALUES";
     $query = $query . "(\"$first_name\", \"$last_name\", \"$password\");";
     $this->_db->execute($query);
     return $this->_id($first_name, $last_name);
@@ -68,7 +68,7 @@ class User {
   }
 
   public function populate() {
-    $query = $query = "INSERT INTO users(first_name, last_name, password) VALUES";
+    $query = $query = "INSERT INTO user(first_name, last_name, password) VALUES";
     $query = $query . "(\"John\", \"Doe\", \"49,216,39,71,195,186,6,74,167,78,106,44,187,2,115,144,153,171,126,199,167,172,165,208,224,227,71,45,71,211,128,99,37,14,164,191,250,107,18,217,228,203,201,236,124,236,95,117,147,91,176,62,111,169,246,41,205,108,39,137,199\"),";
     $query = $query . "(\"Jane\", \"Doe\", \"49,216,39,71,195,186,6,74,167,78,106,44,187,2,115,144,151,173,117,199,167,172,165,208,224,227,71,45,71,211,128,99,37,14,164,191,250,107,18,217,228,203,201,236,124,236,95,117,147,91,176,62,97,175,253,41,205,108,39,137,199\"),";
     $query = $query . "(\"Jack\", \"Hall\", \"49,216,39,71,195,186,6,74,167,78,106,44,187,2,115,144,151,160,123,199,167,172,165,208,224,227,71,45,71,211,128,99,37,14,168,177,243,37,28,215,182,218,219,236,120,244,66,99,213,67,168,118,106,160,251,29,246,107,35,199,214,87,124\"),";
@@ -80,7 +80,7 @@ class User {
   public function userId($first_name, $last_name, $password) {
     $result = null;
     $user = $this->_db->query(
-      "SELECT id, password FROM users WHERE first_name = \"$first_name\" and last_name = \"$last_name\";"
+      "SELECT id, password FROM user WHERE first_name = \"$first_name\" and last_name = \"$last_name\";"
     )[0];
     if($user["password"] == $password) {
       $result = $user["id"];
@@ -89,19 +89,17 @@ class User {
   }
 
   private function _all() {
-    return $this->_db->query(
-      "SELECT * FROM users;"
-    );
+    return $this->_db->query("SELECT * FROM user;");
   }
 
   private function _id($first_name, $last_name) {
     return $this->_db->query(
-      "SELECT id FROM users WHERE first_name = \"$first_name\" and last_name = \"$last_name\";"
+      "SELECT id FROM user WHERE first_name = \"$first_name\" and last_name = \"$last_name\";"
     )[0]["id"];
   }
 
   private function _userById($id) {
-    return $this->_db->query("SELECT * FROM users WHERE id = $id;")[0];
+    return $this->_db->query("SELECT * FROM user WHERE id = $id;")[0];
   }
 
 }

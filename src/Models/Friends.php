@@ -24,8 +24,8 @@ class Friends {
     $query = $query . "friend_id INT NOT NULL,";
     $query = $query . "status VARCHAR(25) NOT NULL,";
     $query = $query . "PRIMARY KEY(user_id, friend_id),";
-    $query = $query . "FOREIGN KEY(user_id) REFERENCES users(id),";
-    $query = $query . "FOREIGN KEY(user_id) REFERENCES users(id));";
+    $query = $query . "FOREIGN KEY(user_id) REFERENCES user(id),";
+    $query = $query . "FOREIGN KEY(friend_id) REFERENCES user(id));";
     $this->_db->execute($query);
   }
 
@@ -37,11 +37,11 @@ class Friends {
   public function populate() {
     $users = $this->_relationships();
     foreach($users as $user) {
-      $query = "SELECT id FROM users WHERE first_name = \"$user->first_name\"";
+      $query = "SELECT id FROM user WHERE first_name = \"$user->first_name\"";
       $query = $query . " AND last_name = \"$user->last_name\";";
       $user_id = $this->_db->query($query)[0]["id"];
       foreach($user->friends as $friend) {
-        $query = "SELECT id FROM users WHERE first_name = \"$friend->first_name\"";
+        $query = "SELECT id FROM user WHERE first_name = \"$friend->first_name\"";
         $query = $query . " AND last_name = \"$friend->last_name\";";
         $friend_id = $this->_db->query($query)[0]["id"];
         $this->_db->execute(

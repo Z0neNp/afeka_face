@@ -5,6 +5,7 @@ class UserView {
   public function view($user, $friends) {
     $friendsContainer = $this->_friendsContainer($user, $friends);
     $result = $result . "<div class=\"alert alert-primary\">Posts</div><hr>";
+    $result = $result . "<div id=\"user_posts\"></div><hr>";
     $result = $result . "<div class=\"alert alert-primary\">Friends list</div><hr>" . $friendsContainer;
     $result = $result . "<div class=\"alert alert-primary\">Friends management</div><hr>";
     return $result;
@@ -15,6 +16,7 @@ class UserView {
     $result = $result. "Back</button></div><hr>";
     $result = $result . "<div class=\"alert alert-primary\">{$friend->first_name} ";
     $result = $result . "{$friend->last_name} Posts</div><hr>";
+    $result = $result . "<div id=\"friend_posts\"></div>";
     return $result;
   }
 
@@ -45,7 +47,12 @@ class UserView {
     $result = $result . "<th scope=\"col\">Status</th>";
     $result = $result . "</tr></thead><tbody>";
     foreach($friends as $friend) {
-      $result = $result . "<tr onclick=\"userFriend($user->id, $friend->id)\"><td>";
+      if($friend->link) {
+        $result = $result . "<tr onclick=\"userFriend($user->id, $friend->id)\"><td>";
+      }
+      else {
+        $result = $result . "<tr><td>";
+      }
       $result = $result . "{$friend->first_name}</td><td>";
       $result = $result . "{$friend->last_name}</td><td>{$friend->status}</td></tr>";
     }

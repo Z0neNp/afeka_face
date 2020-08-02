@@ -3,7 +3,7 @@
 class HomeView {
 
   public function view() {
-    $result = $result . "<div class=\"jumbotron\">";
+    $result = "<div class=\"jumbotron\">";
     $result = $result . "<h1 class=\"display-4 d-flex justify-content-center\">";
     $result = $result . "Welcome to Afeka Face!</h1>";
     $result = $result . "<p class=\"lead d-flex justify-content-center\">";

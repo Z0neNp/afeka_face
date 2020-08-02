@@ -3,10 +3,13 @@
 class Users {
   
   private $_encryptor;
-  private $_model_friends;
   private $_model;
+  private $_model_friends;
+  private $_model_post;
+  private $_model_picture;
   private $_view;
   private $_view_authentication;
+  private $_view_post;
 
   public function addOrApproveFriend($req_uri) {
     $friend_id = $this->_friendIdFromReqUriForRelationshipStatus($req_uri);
@@ -96,6 +99,18 @@ class Users {
     return $this->_view->othersList($user_id, $others);
   }
 
+  public function htmlContainerPosts($req_uri) {
+    $user_id = $this->_userIdFromReqUri($req_uri);
+    $posts = $this->_posts($user_id);
+    return $this->_view_post->htmlContainer($posts);
+  }
+
+  public function htmlContainerPostsFriend($req_uri) {
+    $friend_id = $this->_friendIdFromReqUri($req_uri);
+    $posts = $this->_postsFriend($friend_id);
+    return $this->_view_post->htmlContainer($posts);
+  }
+
   public function htmlContainerSignup() {
     return $this->view_authentication->containerSignup();
   }
@@ -123,6 +138,13 @@ class Users {
     return $result;
   }
 
+  public function newPost($req_uri, $post) {
+    $user_id = $this->_userIdFromReqUri($req_uri);
+    $text = $post->text;
+    $images = $post->images;
+    $private = $post->private;
+  }
+
   public function removeFriend($req_uri) {
     $error = null;
     $friend_id = $this->_friendIdFromReqUriForRelationshipStatus($req_uri);
@@ -147,6 +169,14 @@ class Users {
     $this->_model = $model;
   }
 
+  public function setPictureModel($model) {
+    $this->_model_picture = $model;
+  }
+
+  public function setPostModel($model) {
+    $this->_model_post = $model;
+  }
+
   public function setAuthenticationView($view) {
     $this->view_authentication = $view;
   }
@@ -159,12 +189,22 @@ class Users {
     $this->_view = $view;
   }
 
+  public function setViewPost($view) {
+    $this->_view_post = $view;
+  }
+
   private function _friendsData($relationships) {
     $result = array();
     foreach($relationships as $relationship) {
       $next = null;
       $next = $this->_model->details($relationship->id);
       $next->status = $relationship->status;
+      if($relationship->status == $GLOBALS["friend_status"]["approved"]) {
+        $next->link = true;
+      }
+      else {
+        $next->link = false;
+      }
       array_push($result, $next);
     }
     return $result;
@@ -204,11 +244,59 @@ class Users {
     return false;
   }
 
+  private function _pictures($user_id, $post_id) {
+    $result = array();
+    $pictures = $this->_model_picture->picturesBy($user_id, $post_id);
+    foreach($pictures as $picture) {
+      if(!$picture["thumbnail"]) {
+        array_push($result, $picture["url"]);
+      }
+    }
+    return $result;
+  }
+
+  private function _posts($user_id) {
+    $result = array();
+    $posts = $this->_model_post->postsBy($user_id);
+    foreach($posts as $post) {
+      $next->message = $post["message"];
+      $next->private = $post["private"];
+      $next->pictures = $this->_pictures($user_id, $post["id"]);
+      $next->thumbnail = $this->_thumbnail($user_id, $post["id"]);
+      array_push($result, $next);
+      $next = null;
+    }
+    return $result;
+  }
+
+  private function _postsFriend($friend_id) {
+    $result = array();
+    $posts = $this->_model_post->postsBy($friend_id);
+    foreach($posts as $post) {
+      if(!$post["private"]) {
+        $next->message = $post["message"];
+        $next->pictures = $this->_pictures($friend_id, $post["id"]);
+        $next->thumbnail = $this->_thumbnail($friend_id, $post["id"]);
+        array_push($result, $next);
+        $next = null;
+      }
+    }
+    return $result;
+  }
+
   private function _rc4EncryptedDataFromPayload($payload) {
     $result = null;
     $result->key = substr($payload, 0, 5);
     $result->credentials = substr($payload, 5);
     return $result;
+  }
+
+  private function _thumbnail($user_id, $post_id) {
+    $result = $this->_model_picture->thumbnailBy($user_id, $post_id);
+    if(isset($result) && isset($result[0]) && isset($result[0]["url"])) {
+      return $result[0]["url"];
+    }
+    return null;
   }
 
   private function _updateActionsTowardsOtherUsers($user_id, $others) {
