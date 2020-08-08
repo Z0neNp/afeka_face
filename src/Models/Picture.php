@@ -21,6 +21,12 @@ class Picture {
     $this->_db->execute($query);
   }
 
+  public function new($user_id, $post_id, $url, $thumbnail) {
+    $query = "INSERT INTO picture(user_id,post_id,url,thumbnail)";
+    $query = $query . " VALUES($user_id,$post_id,\"$url\",$thumbnail);";
+    $this->_db->execute($query);
+  }
+
   public function populate() {
     $posts = $this->_db->query("SELECT * FROM post;");
     foreach($posts as $post) {
@@ -33,7 +39,8 @@ class Picture {
       }
       else {
         $query = "INSERT INTO picture(user_id,post_id,url,thumbnail) VALUES($user_id,$post_id,";
-        $query = $query . "\"https://images.unsplash.com/photo-1532173311168-91e999ce4e47?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=701&q=80\",";
+        $query = $query . "\"https://images.unsplash.com/photo-1532173311168-91e999ce4e47?ixlib=";
+        $query = $query . "rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=701&q=80\",";
         $query = $query . "TRUE);";
       }
       $this->_db->execute($query);

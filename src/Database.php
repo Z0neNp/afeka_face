@@ -36,6 +36,15 @@ class Database {
     }
   }
 
+  public function lastInsertId() {
+    $result = $this->query("SELECT LAST_INSERT_ID();");
+    print_r("LAST INSERT ID IS");
+    print_r("<br><br>");
+    print_r($result);
+    print_r("<br><br>");
+    return $result[0]["LAST_INSERT_ID()"];
+  }
+
   public function query($query) {
     $result = array();
     $response = $this->_conn->query($query);

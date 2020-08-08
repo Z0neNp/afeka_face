@@ -5,14 +5,17 @@ class UserView {
   public function view($user, $friends) {
     $friendsContainer = $this->_friendsContainer($user, $friends);
     $result = $result . "<div class=\"alert alert-primary\">Posts</div><hr>";
-    $result = $result . "<div id=\"user_posts\"></div><hr>";
-    $result = $result . "<div class=\"alert alert-primary\">Friends list</div><hr>" . $friendsContainer;
+    $result = $result . "<div id=\"user_posts\"></div><button class=\"btn btn-primary\"";
+    $result = $result . " style=\"width:100%;\" onclick=\"newPostForm()\">New Post</button><hr>";
+    $result = $result . "<div class=\"alert alert-primary\">Friends list</div><hr>";
+    $result = $result . $friendsContainer;
     $result = $result . "<div class=\"alert alert-primary\">Friends management</div><hr>";
     return $result;
   }
 
   public function viewFriend($user_id, $friend) {
-    $result = "<div><button style=\"width:100%;\" class=\"btn btn-primary\" onclick=\"userHome($user_id);\">";
+    $result = "<div><button style=\"width:100%;\" class=\"btn btn-primary\"";
+    $result = $result . " onclick=\"userHome($user_id);\">";
     $result = $result. "Back</button></div><hr>";
     $result = $result . "<div class=\"alert alert-primary\">{$friend->first_name} ";
     $result = $result . "{$friend->last_name} Posts</div><hr>";

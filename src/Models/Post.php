@@ -19,6 +19,19 @@ class Post {
     $this->_db->execute($query);
   }
 
+  public function new($user_id, $private, $message) {
+    if($private) {
+      $private = "TRUE";
+    }
+    else {
+      $private = "FALSE";
+    }
+    $query = "INSERT INTO post(user_id,private,message) VALUES($user_id,$private,\"$message\");";
+    $this->_db->execute($query);
+    $result = $this->_db->lastInsertId();
+    return $result;
+  }
+
   public function populate() {
     $users = $this->_db->query("SELECT * FROM user;");
     foreach($users as $user) {

@@ -99,6 +99,11 @@ class Users {
     return $this->_view->othersList($user_id, $others);
   }
 
+  public function htmlContainerPostNewForm($req_uri) {
+    $user_id = $this->_userIdFromReqUri($req_uri);
+    return $this->_view_post->htmlContainerNewForm($user_id);
+  }
+
   public function htmlContainerPosts($req_uri) {
     $user_id = $this->_userIdFromReqUri($req_uri);
     $posts = $this->_posts($user_id);
@@ -140,9 +145,11 @@ class Users {
 
   public function newPost($req_uri, $post) {
     $user_id = $this->_userIdFromReqUri($req_uri);
-    $text = $post->text;
-    $images = $post->images;
-    $private = $post->private;
+    $post_id = $this->_model_post->new($user_id, $post->private, $post->message);
+    $this->_model_picture->new($user_id, $post_id, $post->thumbnail, "TRUE");
+    foreach($post->pictures as $picture) {
+      $this->_model_picture->new($user_id, $post_id, $picture, "FALSE");
+    }
   }
 
   public function removeFriend($req_uri) {

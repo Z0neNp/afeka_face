@@ -26,6 +26,10 @@ $friend_action = array(
   "approve" => "approve",
   "remove" => "remove"
 );
+$post_visibility = array(
+  "private" => "yes",
+  "public" => "no"
+);
 
 // Additional variables
 $error = null;
