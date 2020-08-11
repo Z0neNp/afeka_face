@@ -71,18 +71,28 @@ class PostView {
       $counter = 0;
       $result = $result . "<div class=\"d-flex flex-row bd-highlight mb-3\">";
       for(; $counter < count($pictures) / 2; $counter++) {
+        $id = $pictures[$counter][0];
+        $url = $pictures[$counter][1];
         $result = $result . "<div class=\"p-2\">";
-        $result = $result . "<img src=\"$pictures[$counter]\" style=\"max-height: 10rem;\"";
-        $result = $result . "id=\"carousel_post_image_$counter\" alt=\"Post image #$counter\">";
+        $result = $result . "<img src=\"$url\" style=\"max-height: 10rem;\"";
+        $result = $result . "id=\"carousel_post_image_$counter\" alt=\"Post image #$counter\"";
+        $result = $result . " onclick=\"enlargeImage($id);\">";
         $result = $result . "</div>";
+        $id = null;
+        $url = null;
       }
       $result = $result . "</div>";
       $result = $result . "<div class=\"d-flex flex-row bd-highlight mb-3\">";
       for(; $counter < count($pictures); $counter++) {
+        $id = $pictures[$counter][0];
+        $url = $pictures[$counter][1];
         $result = $result . "<div class=\"p-2\">";
-        $result = $result . "<img src=\"$pictures[$counter]\" style=\"max-height: 10rem;\"";
-        $result = $result . "id=\"carousel_post_image_$counter\" alt=\"Post image #$counter\">";
+        $result = $result . "<img src=\"$url\" style=\"max-height: 10rem;\"";
+        $result = $result . "id=\"carousel_post_image_$counter\" alt=\"Post image #$counter\"";
+        $result = $result . " onclick=\"enlargeImage($id);\">";
         $result = $result . "</div>";
+        $id = null;
+        $url = null;
       }
       $result = $result . "</div>";
     }

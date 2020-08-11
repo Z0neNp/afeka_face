@@ -1,6 +1,8 @@
-function enlargeImage(user_id, post_id, image_id) {
+function enlargeImage(image_id) {
+  let xhr = new XMLHttpRequest();
   let payload = credentials_container.get();
-  xhr.open("POST", `/users/${user_id}/posts/${post_id}/images/${image_id}`, true);
+  let user_id = credentials_container.getId();
+  xhr.open("POST", `/users/${user_id}/pictures/${image_id}`, true);
   xhr.setRequestHeader("Content-Type", "application/text");
   xhr.onload = function(e) {
     if (xhr.readyState === 4) {

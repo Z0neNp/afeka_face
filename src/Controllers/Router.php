@@ -75,6 +75,10 @@ class Router {
       $controller_response = $this->_postsNewAdd($req_uri, file_get_contents('php://input'));
       $partial_view_response = true;
     }
+    else if($this->_routeToUserPicture($req_uri, $req_method)) {
+      $controller_response = $this->_picture($req_uri, file_get_contents('php://input'));
+      $partial_view_response = true;
+    }
     else if($this->_routeToUserFriendPosts($req_uri, $req_method)) {
       $controller_response = $this->_postsFriend($req_uri, file_get_contents('php://input'));
       $partial_view_response = true;
@@ -221,6 +225,8 @@ class Router {
     $result = $result . "src=\"/src/scripts/authentication.js\"></script>";
     $result = $result . "<script type=\"text/javascript\"";
     $result = $result . "src=\"/src/scripts/posts.js\"></script>";
+    $result = $result . "<script type=\"text/javascript\"";
+    $result = $result . "src=\"/src/scripts/images.js\"></script>";
     $result = $result . "</div></body></html>";
     return $result;
   }
@@ -275,6 +281,20 @@ class Router {
       $error->status = "Error";
       $error->reason = $err->getMessage();
       $error->message = "Failed at pulling filtered users";
+      return $error;
+    }
+  }
+
+  private function _picture($req_uri, $payload) {
+    try {
+      if($this->_users->authorized($payload)) {
+        return $this->_users->htmlContainerPicture($req_uri);
+      }
+      throw new Exception("You are not authorized.\nPlease login.");
+    } catch(Exception $err) {
+      $error->status = "Error";
+      $error->reason = $err->getMessage();
+      $error->message = "Failed at pulling user picture";
       return $error;
     }
   }
@@ -425,6 +445,10 @@ class Router {
 
   private function _routeToUserPostAddAction($req_uri, $req_method) {
     return preg_match("#^/users/[0-9]+/posts/add$#", $req_uri) && $req_method == "POST";
+  }
+
+  private function _routeToUserPicture($req_uri, $req_method) {
+    return preg_match("#^/users/[0-9]+/pictures/[0-9]+$#", $req_uri) && $req_method == "POST";
   }
   
   private function _routeToUserPostForm($req_uri, $req_method) {

@@ -61,6 +61,11 @@ class Picture {
     $query = $query . " AND thumbnail = TRUE;";
     return $this->_db->query($query);
   }
+
+  public function urlBy($picture_id) {
+    $query = "SELECT * FROM picture WHERE id = $picture_id;";
+    return $this->_db->query($query)[0]["url"];
+  }
 }
 
 ?>

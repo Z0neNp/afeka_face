@@ -11,6 +11,7 @@ require_once "src/Models/Post.php";
 require_once "src/Models/User.php";
 require_once "src/Views/Authentication.php";
 require_once "src/Views/Home.php";
+require_once "src/Views/Picture.php";
 require_once "src/Views/Post.php";
 require_once "src/Views/User.php";
 
@@ -45,6 +46,7 @@ $user_model = new User();
 
 $authentication_view = new AuthenticationView();
 $home_view = new HomeView();
+$picture_view = new PictureView();
 $post_view = new PostView();
 $user_view = new UserView();
 
@@ -79,6 +81,7 @@ $users_controller->setModel($user_model);
 $users_controller->setPostModel($post_model);
 $users_controller->setPictureModel($picture_model);
 $users_controller->setView($user_view);
+$users_controller->setViewPicture($picture_view);
 $users_controller->setViewPost($post_view);
 
 $router->setModelFriends($friends_model);

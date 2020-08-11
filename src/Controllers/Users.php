@@ -9,6 +9,7 @@ class Users {
   private $_model_picture;
   private $_view;
   private $_view_authentication;
+  private $_view_picture;
   private $_view_post;
 
   public function addOrApproveFriend($req_uri) {
@@ -75,6 +76,13 @@ class Users {
       return $this->_view->view($user, $friends_data);
     }
     throw new Exception("User or friends data retrieved from the database is illegal");
+  }
+
+  public function htmlContainerPicture($req_uri) {
+    $user_id = $this->_userIdFromReqUri($req_uri);
+    $picture_id = $this->_pictureIdFromReqUri($req_uri);
+    $picture_url = $this->_model_picture->urlBy($picture_id);
+    return $this->_view_picture->htmlContainer($user_id, $picture_url);
   }
 
   public function htmlContainerFriend($req_uri) {
@@ -196,6 +204,10 @@ class Users {
     $this->_view = $view;
   }
 
+  public function setViewPicture($view) {
+    $this->_view_picture = $view;
+  }
+
   public function setViewPost($view) {
     $this->_view_post = $view;
   }
@@ -256,10 +268,19 @@ class Users {
     $pictures = $this->_model_picture->picturesBy($user_id, $post_id);
     foreach($pictures as $picture) {
       if(!$picture["thumbnail"]) {
-        array_push($result, $picture["url"]);
+        $next = array();
+        array_push($next, $picture["id"]);
+        array_push($next, $picture["url"]);
+        array_push($result, $next);
+        $next = null;
       }
     }
     return $result;
+  }
+
+  private function _pictureIdFromReqUri($req_uri) {
+    $splitted = explode("/", $req_uri);
+    return intval($splitted[4]);
   }
 
   private function _posts($user_id) {
