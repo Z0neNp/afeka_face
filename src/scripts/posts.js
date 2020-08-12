@@ -1,28 +1,50 @@
 function gatherImages() {
-  let result = [];
-  for(let i = 0; i < 6; i++) {
-    let container_id = `post_image_${i}`;
-    let url = document.getElementById(container_id).value;
-    if(url && url.length > 0) {
-      result.push(url);
+  try {
+    let result = [];
+    for(let i = 0; i < 6; i++) {
+      let container_id = `post_image_${i}`;
+      let url = document.getElementById(container_id).value;
+      if(url && url.length > 0) {
+        result.push(url);
+      }
     }
+    return result;
+  } catch(err) {
+    throw new Exception("gatherImages() - failed.\n" + err.message);
   }
-  return result;
+}
+
+function gatherMessage() {
+  try {
+    return document.getElementById("post_message").value;
+  } catch(err) {
+    throw new Error("gatherMessage() - failed.\n" + err.message);
+  }
 }
 
 function gatherPostData() {
-  let result = {
-    message: document.getElementById("post_message").value,
-    thumbnail: document.getElementById("post_thumbnail").value,
-    images: gatherImages(),
-    private: "no"
+  try {
+    let result = {
+      message: gatherMessage(),
+      thumbnail: gatherPostThumbnail(),
+      images: gatherImages(),
+      private: "no"
+    }
+    if(document.getElementById("post_private").checked) {
+      result.private = "yes";
+    }
+    return result;
+  } catch(err) {
+    throw new Error("gatherPostData() - failed.\n" + err.message);
   }
-  if(document.getElementById("post_private").checked) {
-    result.private = "yes";
+}
+
+function gatherPostThumbnail() {
+  try {
+    return document.getElementById("post_thumbnail").value;
+  } catch(err) {
+    throw new Error("gatherPostThumbnail() - failed.\n" + err.message);
   }
-  postDataLegal(result);
-  postFinalizeData(result);
-  return result;
 }
 
 function postDataLegal(post) {
@@ -46,11 +68,15 @@ function postDataLegal(post) {
 }
 
 function postImageLegal(obj) {
-  let url_regex = new RegExp(/^http:\/\/.*|^https:\/\/.*$/g);
-  if(obj.length > 0) {
-    return obj.match(url_regex);
+  try {
+    let url_regex = new RegExp(/^http:\/\/.*|^https:\/\/.*$/g);
+    if(obj.length > 0) {
+      return obj.match(url_regex);
+    }
+    return true;
+  } catch(err) {
+    throw new Error("postImageLegal() - failed to make the validation.\n" + err.message);
   }
-  return true;
 }
 
 function postFinalizeData(post) {
@@ -60,120 +86,113 @@ function postFinalizeData(post) {
 }
 
 function postMessageLegal(obj) {
-  let message_regex = new RegExp(/^[a-zA-Z0-9\t.,;]+$/g);
-  return obj.match(message_regex);
+  try {
+    let message_regex = new RegExp(/^[a-zA-Z0-9\t.,;]+$/g);
+    return obj.match(message_regex);
+  } catch(err) {
+    throw new Error("postMessageLegal() - failed to make the validation.\n" + err.message);
+  }
 }
 
 function resetPostData() {
-  for(let i = 0; i < 5; i++) {
-    document.getElementById(`post_image_${i}`).value = "";
-    document.getElementById("post_message").value = "";
-    document.getElementById("post_thumbnail").value = "";
-    document.getElementById("post_private").checked = false;
+  try {
+    for(let i = 0; i < 5; i++) {
+      document.getElementById(`post_image_${i}`).value = "";
+      document.getElementById("post_message").value = "";
+      document.getElementById("post_thumbnail").value = "";
+      document.getElementById("post_private").checked = false;
+    }
+  } catch(err) {
+    throw new Error("resetPostData() - failed.\n" + err.message);
   }
 }
 
 function submitNewPostData() {
-  let credentials = undefined;
-  let payload = undefined;
-  let post = undefined;
-  let user_id = undefined;
-  let xhr = new XMLHttpRequest();
   try {
-    post = gatherPostData();
-    credentials = credentials_container.get();
-    user_id = credentials_container.getId();
-    payload = {
+    let post = gatherPostData();
+    postDataLegal(post);
+    postFinalizeData(post);
+    let credentials = credentials_container.get();
+    let user_id = credentials_container.getId();
+    let payload = {
       post: post,
       credentials: credentials
     }
     payload = JSON.stringify(payload);
+    let url = `/users/${user_id}/posts/add`;
+    postRequest(url, payload, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] != "{") {
+            userHome(user_id);
+            return;
+          }
+        }
+        throw new Error("The server has refused the new post.\n" + response_text);
+      } catch(err) {
+        alert("New post submission request has failed. More details are in the console.");
+        console.error(err.message);
+      }
+    });
   } catch(err) {
-    alert(`Failed to send the new post data.\n${err.message}\nTry again!`);
+    alert("Failed to submit the new post request. More details are in console.");
+    console.error(err.message);
     try {
       resetPostData();
     } catch(err) {
       newPostForm();
     }
-    return;
   }
-  xhr.open("POST", `/users/${user_id}/posts/add`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          userHome(user_id);
-          return;
-        }
-      } else {
-        alert(xhr.statusText);
-      }
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-  };
-  xhr.send(payload);
 }
 
 function updateFriendPostsContainer(friend_id) {
-  let payload = credentials_container.get();
-  let user_id = credentials_container.getId();
-  let xhr = new XMLHttpRequest();
-  xhr.open("POST", `/users/${user_id}/friends/${friend_id}/posts`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          document.getElementById("friend_posts").innerHTML = xhr.responseText;
-          return;
+  try {
+    let payload = credentials_container.get();
+    let user_id = credentials_container.getId();
+    let url = `/users/${user_id}/friends/${friend_id}/posts`;
+    postRequest(url, payload, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] == "<") {
+            document.getElementById("friend_posts").innerHTML = response_text;
+            return;
+          }
         }
-      } else {
-        alert(xhr.statusText);
+        let err_msg = "Server has refused to provide the friend posts.\n";
+        throw new Error(err_msg + response_text);
+      } catch(err) {
+        alert("Friend posts could not be loaded. More details are in the console.");
+        console.error(err.message);
       }
-      window.location.href = "http://localhost:8000/";
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-    window.location.href = "http://localhost:8000/";
-  };
-  xhr.send(payload);
+    });
+  } catch(err) {
+    alert("Friend posts could not be loaded. More details are in the console");
+    console.error(err.message);
+  }
 }
 
 function updatePostsContainer() {
-  let payload = credentials_container.get();
-  let user_id = credentials_container.getId();
-  let xhr = new XMLHttpRequest();
-  xhr.open("POST", `/users/${user_id}/posts`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          document.getElementById("user_posts").innerHTML = xhr.responseText;
-          return;
+  try {
+    let payload = credentials_container.get();
+    let user_id = credentials_container.getId();
+    let url = `/users/${user_id}/posts`;
+    postRequest(url, payload, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] == "<") {
+            document.getElementById("user_posts").innerHTML = response_text;
+            return;
+          }
         }
-      } else {
-        alert(xhr.statusText);
+        let err_msg = "Server has refused to provide the posts.\n";
+        throw new Error(err_msg + response_text);
+      } catch(err) {
+        alert("Posts could not be loaded. More details are in the console.");
+        console.error(err.message);
       }
-      window.location.href = "http://localhost:8000/";
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-    window.location.href = "http://localhost:8000/";
-  };
-  xhr.send(payload);
+    });
+  } catch(err) {
+    alert("Posts could not be loaded. More details are in the console");
+    console.error(err.message);
+  }
 }
