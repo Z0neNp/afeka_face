@@ -9,7 +9,13 @@ function credentialsContainerObj() {
       _id = id;
     },
     get: function() {
-      return rc4_encrypt(JSON.stringify(_data), "abcde");
+      try {
+        return rc4_encrypt(JSON.stringify(_data), "abcde");
+      } catch(err) {
+        let err_msg = "credentialsContainerObj() - failed to encrypt the credentials data\n";
+        err_msg += err.message;
+        throw new Exception(err_msg);
+      }
     },
     getId: function() {
       return _id;
@@ -20,91 +26,163 @@ function credentialsContainerObj() {
 function credentialsLegal(credentials) {
   let name_regex = new RegExp(/^[a-zA-Z]+$/g);
   let password_regex = new RegExp(/^[a-zA-Z_]+$/g);
-  return credentials.first_name.match(name_regex) != undefined &&
-    credentials.last_name.match(name_regex) != undefined &&
-    credentials.password.match(password_regex) != undefined;
+  try {
+    return credentials.first_name.match(name_regex) != undefined &&
+      credentials.last_name.match(name_regex) != undefined &&
+      credentials.password.match(password_regex) != undefined;
+  } catch(err) {
+    let err_msg = "credentialsLegal() - failed to make the validation\n";
+    err_msg += err.message;
+    throw new Exception(err_msg);
+  }
 }
 
 function gatherCredentials() {
-  let result = {
-    first_name: document.getElementById("first_name").value,
-    last_name: document.getElementById("last_name").value,
-    password: document.getElementById("password").value
+  try {
+    return {
+      first_name: gatherFirstName(),
+      last_name: gatherLastName(),
+      password: gatherPassword()
+    }
+  } catch(err) {
+    let err_msg = "gatherCredentials() - failed\n" + err.message;
+    throw new Exception(err_msg);
   }
-  if(!credentialsLegal(result)) {
-    resetCredentials();
-    alert("Some of your information is illegal.\nTry again.");
-    return undefined;
+}
+
+function gatherFirstName() {
+  try {
+    return document.getElementById("first_name").value;
+  } catch(err) {
+    let err_msg = "gatherFirstName() - failed to access the value from the ";
+    err_msg += "first_name input element\n" + err.message;
+    throw new Exception(err_msg);
   }
-  return result;
+}
+
+function gatherLastName() {
+  try {
+    return document.getElementById("last_name").value;
+  } catch(err) {
+    let err_msg = "gatherLastName() - failed to access the value from the ";
+    err_msg += "last_name input element\n" + err.message;
+    throw new Exception(err_msg);
+  }
+}
+
+function gatherPassword() {
+  try {
+    return document.getElementById("password").value;
+  } catch(err) {
+    let err_msg = "gatherPassword() - failed to access the value from the ";
+    err_msg += "password input element\n" + err.message;
+    throw new Exception(err_msg);
+  }
 }
 
 function resetCredentials() {
-  document.getElementById("password").value = "";
-  document.getElementById("last_name").value = "";
-  document.getElementById("first_name").value = "";
+  try {
+    resetFirstName();
+    resetLastName();
+    resetPassword();
+  } catch(err) {
+    let err_msg = "resetCredentials() - failed\n" + err.message;
+    throw new Exception(err_msg);
+  }
+}
+
+function resetFirstName() {
+  try {
+    document.getElementById("first_name").value = "";
+  } catch(err) {
+    let err_msg = "resetFirstName() - failed to access the value in the ";
+    err_msg = "first_name input element\n" + err.message;
+    throw new Exception(err_msg);
+  }
+}
+
+function resetLastName() {
+  try {
+    document.getElementById("last_name").value = "";
+  } catch(err) {
+    let err_msg = "resetLastName() - failed to access the value in the ";
+    err_msg = "last_name input element\n" + err.message;
+    throw new Exception(err_msg);
+  }
+}
+
+function resetPassword() {
+  try {
+    document.getElementById("password").value = "";
+  } catch(err) {
+    let err_msg = "resetPassword() - failed to access the value in the ";
+    err_msg = "password input element\n" + err.message;
+    throw new Exception(err_msg);
+  }
 }
 
 function login() {
-  let payload = undefined;
-  let xhr = new XMLHttpRequest();
-  let credentials = gatherCredentials();
-  if(credentials) {
+  try {
+    let credentials = gatherCredentials();
+    if(!credentialsLegal(credentials)) {
+      resetCredentials();
+      throw new Error("Some of the credentials, i.e. password, is illegal");
+    }
     credentials_container.set(credentials);
-    payload = credentials_container.get();
-    xhr.open("POST", `/login`, true);
-    xhr.setRequestHeader("Content-Type", "application/text");
-    xhr.onload = function(e) {
-      if(xhr.readyState === 4) {
-        if(xhr.status === 200) {
-          let response = JSON.parse(xhr.responseText);
+    let encrypted_credentials = credentials_container.get();
+    let url = "/login";
+    postRequest(url, encrypted_credentials, function(status, response_text) {
+      try {
+        if(status == 200) {
+          let response = JSON.parse(response_text);
           if(response["id"]) {
             credentials_container.setId(response["id"]);
             userHome(response["id"]);
-          } else {
-            alert("Login has failed!\n" + response["error"]);
+            return;
           }
-        } else {
-          alert(xhr.statusText);
         }
+        throw new Error("Server has refused the login attempt.\n" + response_text);
+      } catch(err) {
+        alert("Login attempt has failed. More details are in the console.");
+        console.error(err.message);
       }
-    }
-    xhr.onerror = function(e) {
-      alert(xhr.statusText);
-    };
-    xhr.send(payload); 
+    });
+  } catch(err) {
+    alert("Login attempt has failed. More details are in the console.");
+    console.error(err.message);
   }
 }
 
 function signup() {
-  let payload = undefined;
-  let xhr = new XMLHttpRequest();
-  let credentials = gatherCredentials();
-  if(credentials) {
+  try {
+    let credentials = gatherCredentials();
+    if(!credentialsLegal(credentials)) {
+      resetCredentials();
+      throw new Error("Some of the credentials, i.e. password, is illegal");
+    }
     credentials_container.set(credentials);
-    payload = credentials_container.get();
-    xhr.open("POST", `/signup`, true);
-    xhr.setRequestHeader("Content-Type", "application/text");
-    xhr.onload = function(e) {
-      if(xhr.readyState === 4) {
-        if(xhr.status === 200) {
-          let response = JSON.parse(xhr.responseText);
+    let encrypted_credentials = credentials_container.get();
+    let url = "/signup";
+    postRequest(url, encrypted_credentials, function(status, response_text) {
+      try {
+        if(status == 200) {
+          let response = JSON.parse(response_text);
           if(response["id"]) {
             credentials_container.setId(response["id"]);
-            alert("Your account has been created!\nYou will be redirected to your page");
+            alert("Your account has been created!\nYou will be redirected to your page.");
             userHome(response["id"]);
-          } else {
-            alert("Account creation has failed!\n" + response["error"]);
+            return;
           }
-        } else {
-          console.error(xhr.statusText);
         }
+        throw new Error("Server has refused the signup attempt.\n" + response_text);
+      } catch(err) {
+        alert("Signup attempt has failed. More details are in the console.");
+        console.error(err.message);
       }
-    };
-    xhr.onerror = function(e) {
-      console.error(xhr.statusText);
-    };
-    xhr.send(payload);
+    });
+  } catch(err) {
+    alert("Singup attempt has failed. More details are in the console.");
+    console.error(err.message);
   }
 }
 

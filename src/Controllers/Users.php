@@ -139,7 +139,7 @@ class Users {
       $user_id = $this->_model->new(
         $credentials->first_name,
         $credentials->last_name,
-        $credentials->password
+        $rc4_encrypted_data
       );
       if(isset($user_id)) {
         $result->id = $user_id;

@@ -218,6 +218,8 @@ class Router {
     $result = "<script type=\"text/javascript\"";
     $result = $result . "src=\"/src/scripts/rc4_encryption.js\"></script>";
     $result = $result . "<script type=\"text/javascript\"";
+    $result = $result . "src=\"/src/scripts/ajax_vanilla.js\"></script>";
+    $result = $result . "<script type=\"text/javascript\"";
     $result = $result . "src=\"/src/scripts/filter_users.js\"></script>";
     $result = $result . "<script type=\"text/javascript\"";
     $result = $result . "src=\"/src/scripts/relationship.js\"></script>";
