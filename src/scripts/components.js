@@ -1,141 +1,126 @@
 function newPostForm() {
-  let payload = credentials_container.get();
-  let user_id = credentials_container.getId();
-  let xhr = new XMLHttpRequest();
-  xhr.open("POST", `/users/${user_id}/posts/new`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          document.getElementById("application").innerHTML = xhr.responseText;
-          return;
+  try {
+    let payload = credentials_container.get();
+    let user_id = credentials_container.getId();
+    let url = `/users/${user_id}/posts/new`;
+    postRequest(url, payload, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] == "<") {
+            document.getElementById("application").innerHTML = response_text;
+            return;
+          }
         }
-      } else {
-        alert(xhr.statusText);
+        let err_msg = "Server has refused to provide the new post form.\n";
+        throw new Error(err_msg + response_text);
+      } catch(err) {
+        alert("New post form request has failed. More details are in the console.");
+        console.error(err.message);
       }
-      window.location.href = "http://localhost:8000/";
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-    window.location.href = "http://localhost:8000/";
-  };
-  xhr.send(payload);
+    });
+  } catch(err) {
+    alert("New post form could not be loaded. More details are in the console");
+    console.error(err.message);
+  }
 }
 
 function userHome(user_id) {
-  let payload = credentials_container.get();
-  let xhr = new XMLHttpRequest();
-  xhr.open("POST", `/users/${user_id}`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          document.getElementById("application").innerHTML = xhr.responseText;
-          updatePostsContainer();
-          handleFilterUsersInput();
-          return;
+  try {
+    let payload = credentials_container.get();
+    let url = `/users/${user_id}`;
+    postRequest(url, payload, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] == "<") {
+            document.getElementById("application").innerHTML = response_text;
+            updatePostsContainer();
+            handleFilterUsersInput();
+            return;
+          }
         }
-      } else {
-        alert(xhr.statusText);
+        let err_msg = "Server has refused to provide the user home page.\n";
+        throw new Error(err_msg + response_text);
+      } catch(err) {
+        alert("User home page request has failed. More details are in the console.");
+        console.error(err.message);
       }
-      window.location.href = "http://localhost:8000/";
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-    window.location.href = "http://localhost:8000/";
-  };
-  xhr.send(payload);
+    });
+  } catch(err) {
+    alert("User home page could not be loaded. More details are in the console");
+    console.error(err.message);
+  }
 }
 
 function userFriend(user_id, friend_id) {
-  let payload = credentials_container.get();
-  let xhr = new XMLHttpRequest();
-  xhr.open("POST", `/users/${user_id}/friends/${friend_id}`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          document.getElementById("application").innerHTML = xhr.responseText;
-          updateFriendPostsContainer(friend_id);
-          return;
+  try {
+    let payload = credentials_container.get();
+    let url = `/users/${user_id}/friends/${friend_id}`;
+    postRequest(url, payload, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] == "<") {
+            document.getElementById("application").innerHTML = response_text;
+            updateFriendPostsContainer(friend_id);
+            return;
+          }
         }
-      } else {
-        alert(xhr.statusText);
+        let err_msg = "Server has refused to provide the user friend page.\n";
+        throw new Error(err_msg + response_text);
+      } catch(err) {
+        alert("User friend page request has failed. More details are in the console.");
+        console.error(err.message);
       }
-      window.location.href = "http://localhost:8000/";
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-    window.location.href = "http://localhost:8000/";
-  };
-  xhr.send(payload);
+    });
+  } catch(err) {
+    alert("User friend page could not be loaded. More details are in the console");
+    console.error(err.message);
+  }
 }
 
 function userLogin() {
-  let xhr = new XMLHttpRequest();
-  xhr.open("GET", `/login`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          document.getElementById("application").innerHTML = xhr.responseText;
-          return;
+  try {
+    let url = `/login`;
+    getRequest(url, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] == "<") {
+            document.getElementById("application").innerHTML = response_text;
+            return;
+          }
         }
-      } else {
-        alert(xhr.statusText);
+        let err_msg = "Server has refused to provide the user login page.\n";
+        throw new Error(err_msg + response_text);
+      } catch(err) {
+        alert("User login page request has failed. More details are in the console.");
+        console.error(err.message);
       }
-      window.location.href = "http://localhost:8000/";
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-    window.location.href = "http://localhost:8000/";
-  };
-  xhr.send(null);
+    });
+  } catch(err) {
+    alert("User login page could not be loaded. More details are in the console");
+    console.error(err.message);
+  }
 }
 
 function userSignup() {
-  let xhr = new XMLHttpRequest();
-  xhr.open("GET", `/signup`, true);
-  xhr.setRequestHeader("Content-Type", "application/text");
-  xhr.onload = function(e) {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        try {
-          let response = JSON.parse(xhr.responseText);
-          alert(response["reason"] + "\n\n" + response["message"]);
-        } catch(err) {
-          document.getElementById("application").innerHTML = xhr.responseText;
-          return;
+  try {
+    let url = `/signup`;
+    getRequest(url, function(status, response_text) {
+      try {
+        if(status == 200) {
+          if(response_text[0] == "<") {
+            document.getElementById("application").innerHTML = response_text;
+            return;
+          }
         }
-      } else {
-        alert(xhr.statusText);
+        let err_msg = "Server has refused to provide the user signup page.\n";
+        throw new Error(err_msg + response_text);
+      } catch(err) {
+        alert("User signup page request has failed. More details are in the console.");
+        console.error(err.message);
       }
-      window.location.href = "http://localhost:8000/";
-    }
-  };
-  xhr.onerror = function(e) {
-    alert(xhr.statusText);
-    window.location.href = "http://localhost:8000/";
-  };
-  xhr.send(null);
+    });
+  } catch(err) {
+    alert("User signup page could not be loaded. More details are in the console");
+    console.error(err.message);
+  }
 }
